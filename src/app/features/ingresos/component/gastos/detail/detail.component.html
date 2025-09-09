@@ -1,0 +1,286 @@
+<app-certificaciones *ngIf="selectedItem == 1" (messageEvent)="receiveMessageCertificaciones($event)"
+    (closeModal)="setSelectedItem(0)"></app-certificaciones>
+<section class="content">
+    <div class="container-fluid">
+        <div *ngIf="loading">
+            <div>
+                <!-- <div class="preloader flex-column justify-content-center align-items-center">
+                <img src="assets/img/logo_mediano.png" class="animation__wobble" alt="cossmilLogo" height="80"
+                    width="80">
+            </div> -->
+            </div>
+        </div>
+        <div class="row" *ngIf="!loading">
+            <div class="col-md-12">
+                <div class="card card" *ngIf="VisibleAdd">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <h2>DETALLE PRESUPUESTARIO</h2>
+                        </div>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <button type="button" style="margin-left: 10px" class="btn btn-primary"
+                                    (click)="addDet()">
+                                    Agregar Detalle</button>
+                                <button type="button" style="margin-left: 10px" class="btn btn-danger"
+                                    (click)="goBack()">Salir</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card card-success" *ngIf="!VisibleAdd">
+                    <div class="card-header">
+                        <h5 class="card-title">{{titleCard}}</h5>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div *ngIf="isAlert" class="alert alert-info alert-dismissible fade show" role="alert">
+                            <strong>SU SALDO ACTUAL ES : {{nuevoDetalle.saldofinal}}</strong>
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <form [formGroup]="detalleFormGroup">
+                            <div class="row mb-4">
+                                <div class="col-auto">
+                                    <p-inputgroup>
+                                        <input pInputText id="numeroCertificacion"
+                                            [(ngModel)]="nuevoDetalle.numeroCertificacion" style="width: 200px;"
+                                            [ngModelOptions]="{standalone: true}" [attr.disabled]="true" required
+                                            placeholder="Certificación" (keyup.enter)="BuscarCertificaciones()" />
+                                        <button pButton type="button" class="p-button-success"
+                                            (click)="BuscarCertificaciones()"
+                                            [disabled]="!nuevoDetalle.numeroCertificacion || nuevoDetalle.numeroCertificacion.trim() === ''">
+                                            Buscar
+                                        </button>
+                                    </p-inputgroup>
+                                    <div *ngIf="submitted && !nuevoDetalle.numeroCertificacion" class="text-danger">
+                                        El número de certificación es obligatorio.
+                                    </div>
+                                </div>
+                                <!-- <div class="col-auto">
+                                    <p-inputgroup>
+                                        <input pInputText id="numeroCertificacion"
+                                            [(ngModel)]="nuevoDetalle.numeroCertificacion" style="width: 200px;"
+                                            [ngModelOptions]="{standalone: true}" [attr.disabled]="true" required
+                                            placeholder="Certificacion" />
+                                        <button pButton type="button" label="Buscar" class="p-button-success"
+                                            (click)="setModalCertificaciones()" data-toggle="modal"
+                                            data-target="#modalCertificacion"></button>
+                                    </p-inputgroup>
+                                    <div *ngIf="submitted && !nuevoDetalle.numeroCertificacion" class="text-danger">
+                                        El proveedor es obligatorio.
+                                    </div>
+                                </div> -->
+                                <div class="col-auto">
+                                    <p-floatlabel variant="on">
+                                        <input pInputText id="nota_solicitud" [(ngModel)]="nuevoDetalle.nota_solicitud"
+                                            style="width: 400px;" [ngModelOptions]="{standalone: true}"
+                                            [attr.disabled]="true" />
+                                        <label for="">Nota de Solicitud</label>
+                                    </p-floatlabel>
+                                </div>
+                                <div class="col-auto">
+                                    <p-floatlabel variant="on">
+                                        <input pInputText id="area_organizacional"
+                                            [(ngModel)]="nuevoDetalle.area_organizacional" style="width: 300px;"
+                                            [ngModelOptions]="{standalone: true}" [attr.disabled]="true" />
+                                        <label for="">Area Organizacional</label>
+                                    </p-floatlabel>
+                                </div>
+                                <div class="col-auto">
+                                    <p-floatlabel variant="on">
+                                        <input pInputText id="descripcionEspecificaRequerimientos"
+                                            [(ngModel)]="nuevoDetalle.descripcionEspecificaRequerimientos"
+                                            style="width: 400px;" [ngModelOptions]="{standalone: true}"
+                                            [attr.disabled]="true" />
+                                        <label for="">Descripcion Especifica del Requirimiento</label>
+                                    </p-floatlabel>
+                                </div>
+                            </div>
+                            <div class="row mb-4">
+                                <div class="col-auto">
+                                    <p-floatlabel variant="on">
+                                        <input pInputText id="operaciones" [(ngModel)]="nuevoDetalle.operaciones"
+                                            style="width: 700px;" [ngModelOptions]="{standalone: true}" />
+                                        <label for="">Operaciones</label>
+                                    </p-floatlabel>
+                                </div>
+                                <div class="col-auto">
+                                    <p-floatlabel variant="on">
+                                        <input pInputText id="catProg" [(ngModel)]="nuevoDetalle.catProg"
+                                            style="width: 300px;" [ngModelOptions]="{standalone: true}" />
+                                        <label for="">Categoria Programatica</label>
+                                    </p-floatlabel>
+                                </div>
+                                <div class="col-auto">
+                                    <p-floatlabel variant="on">
+                                        <input pInputText id="partida" [(ngModel)]="nuevoDetalle.partida"
+                                            style="width: 400px;" [ngModelOptions]="{standalone: true}" />
+                                        <label for="">Partida Presupuestaria</label>
+                                    </p-floatlabel>
+                                </div>
+                            </div>
+
+                            <div class="row mb-4">
+                                <div class="col-auto">
+                                    <p-floatlabel variant="on">
+                                        <input pInputText id="area_organizacional" [(ngModel)]="nuevoDetalle.tareas"
+                                            style="width: 700px;" [ngModelOptions]="{standalone: true}"
+                                            [attr.disabled]="true" />
+                                        <label for="">Tareas</label>
+                                    </p-floatlabel>
+                                </div>
+
+                                <!-- <div class="col-auto">
+                                    <p-floatlabel variant="on">
+                                        <input pInputText id="descripcionEspecificaRequerimientos"  [(ngModel)]="nuevoDetalle.descripcionEspecificaRequerimientos"
+                                            style="width: 300px;" [ngModelOptions]="{standalone: true}"
+                                            [attr.disabled]="true" />
+                                        <label for="">descripcion</label>
+                                    </p-floatlabel>
+                                </div> -->
+                                <!-- <div class="col-auto">
+                                    <p-floatlabel variant="on">
+                                        <input pInputText id="cantidad" [(ngModel)]="nuevoDetalle.cantidad"
+                                            style="width: 100px;" [ngModelOptions]="{standalone: true}" />
+                                        <label for="">Cantidad</label>
+                                    </p-floatlabel>
+                                </div> -->
+                                <!-- <div class="col-auto">
+                                    <p-floatlabel variant="on">
+                                        <input pInputText id="precioUnitario" [(ngModel)]="nuevoDetalle.precioUnitario"
+                                            style="width: 100px;" [ngModelOptions]="{standalone: true}" />
+                                        <label for="">Precio Unitario</label>
+                                    </p-floatlabel>
+                                </div> -->
+                                <div class="col-auto">
+                                    <p-floatlabel variant="on">
+                                        <input pInputText id="costoTotal" [(ngModel)]="nuevoDetalle.costoTotal"
+                                            style="width: 150px;" [ngModelOptions]="{standalone: true}" />
+                                        <label for="">Costo Total</label>
+                                    </p-floatlabel>
+                                </div>
+                                <div class="col-auto">
+                                    <p-floatlabel variant="on">
+                                        <input pInputText id="ejecutado" [(ngModel)]="nuevoDetalle.ejecutado"
+                                            (keyup)="keyCantidad()" (ngModelChange)="calculateCostoTotal()"
+                                            style="width: 150px;" [ngModelOptions]="{standalone: true}" />
+                                        <label for="">Ejecutado</label>
+                                    </p-floatlabel>
+                                </div>
+                                <div class="col-auto">
+                                    <p-floatlabel variant="on">
+                                        <input pInputText id="saldo" [(ngModel)]="nuevoDetalle.saldo"
+                                            style="width: 150px;" [ngModelOptions]="{standalone: true}" />
+                                        <label for="">saldo</label>
+                                    </p-floatlabel>
+                                </div>
+                                <div class="col-auto">
+                                    <p-floatlabel variant="on">
+                                        <input pInputText id="saldofinal" [(ngModel)]="nuevoDetalle.saldofinal"
+                                            (ngModelChange)="calculateCostoTotal()" style="width: 150px;"
+                                            [ngModelOptions]="{standalone: true}" />
+                                        <label for="">Saldo Final</label>
+                                    </p-floatlabel>
+                                </div>
+                            </div>
+
+
+                        </form>
+                    </div>
+                    <div class="card-footer">
+
+                        <button type="button" style="margin-left: 10px" class="btn btn-danger float-right btn-space"
+                            (click)="cancelAddDet()">Cancelar</button>
+                        <button *ngIf="saveUpdate" type="button" style="margin-left: 10px"
+                            class="btn btn-success float-right btn-space " (click)=" guardarRegistro()"
+                            [disabled]="isLoading">
+                            <i class="fa"
+                                [ngClass]="{'fa-spin fa-spinner': isLoading, '': !isLoading}"></i>{{button}}</button>
+                        <button *ngIf="!saveUpdate" type="button" style="margin-left: 10px"
+                            class="btn btn-success float-right btn-space " (click)=" actualizarRegistro()"
+                            [disabled]="isLoadingUpdate">
+                            <i class="fa"
+                                [ngClass]="{'fa-spin fa-spinner': isLoadingUpdate, '': !isLoadingUpdate}"></i>{{buttonUpdate}}</button>
+                    </div>
+                </div>
+
+                <div class="card card-primary" style="padding: 20px;">
+                    <div class="row">
+                        <table datatable [dtOptions]="dtOptions"
+                            class="row-border hover table table-bordered table-wrapper">
+                            <thead>
+                                <tr>
+                                    <th scope="col" *ngFor="let titulo of titulosColumnas">
+                                        {{titulo}}
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <ng-container *ngFor="let lista of det; let i=index">
+                                    <tr *ngIf="lista.baja !== true">
+                                        <td>{{lista.numeroCertificacion}}</td>
+                                        <td>{{lista.area_organizacional}}</td>
+                                        <td>{{lista.descripcionEspecificaRequerimientos}}</td>
+                                        <td>{{lista.operaciones}}</td>
+                                        <td>{{lista.costoTotal| number}}</td>
+                                        <td>{{lista.saldo| number}}</td>
+                                        <td>{{lista.saldofinal| number}}</td>
+                                        <td>
+                                            <div *ngIf="lista.baja !== true" class="d-flex align-items-center">
+                                                <button type="button" class="btn btn-outline-warning"
+                                                    style="margin: 2px;" data-placement="bottom" data-toggle="tooltip"
+                                                    title="Editar">
+                                                    <i class="fa-solid fa-pencil" (click)=" updateDet(lista)"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-danger"
+                                                    style="margin: 2px;" data-placement="bottom" data-toggle="tooltip"
+                                                    title="Borrar">
+                                                    <i class="fa-solid fa-trash"
+                                                        (click)="eliminarDetalle (lista.id_gasto_det)"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </ng-container>
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+                <div class="card-footer clearfix">
+                    <div class="row">
+                        <div class="col-sm-4 col-6">
+                            <div class="description-block border-right">
+                                <h5 class="description-header">{{total.registros}}</h5>
+                                <span class="description-text">TOTAL AUTORIZADO</span>
+                            </div>
+                            <!-- /.description-block -->
+                        </div>
+                        <div class="col-sm-4 col-6">
+                            <div class="description-block border-right">
+                                <h5 class="description-header">Bs. {{total.importe | number}}</h5>
+                                <span class="description-text">TOTAL IMPORTE</span>
+                            </div>
+                            <!-- /.description-block -->
+                        </div>
+                    </div>
+                    <!-- /.row -->
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

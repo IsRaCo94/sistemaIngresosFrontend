@@ -1,0 +1,33 @@
+export class Certificacion{
+    
+    id_certificacion!:number;
+    codigoCert!:string; 
+    nota_solicitud!:string;
+    area_organizacional!:string;
+    descripcionEspecificaRequerimientos!:string;
+    accionesCortoPlazo!:string;
+    estadoCertificacion!:string;
+    baja!:boolean;
+    operaciones!:string;
+    tareas!:string;
+    compromiso!:string;
+    devengado!:boolean;    
+    cantidad!:number;
+    precioUnitario!:number;
+    costoTotal!:number;
+    programado!:number;
+    ejecutado!:number;
+    saldo!:number;
+    descripcion!:string;
+    catePorgr!:string;
+    fecha!:Date;
+    id_unidad_id!:string;
+    id_actividad_id!:string;
+    id_insumo_id!:string;
+    partida_id!:string;
+    numeroCertificacion!:string;
+    cantidadAdquirida!:number;
+    precioAdquirido!:number;
+    costoAdquirido!:number;
+    bienServicioDemandado!:string;
+}

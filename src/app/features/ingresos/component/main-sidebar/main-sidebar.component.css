@@ -1,0 +1,51 @@
+.activo {
+    background-color: #ccc;  
+  }
+  .activo a {
+    color: green;
+  }
+  .parpadea {
+    animation: blink-animation 1s steps(5, start) infinite;
+    -webkit-animation: blink-animation 1s steps(5, start) infinite;
+  }
+  @keyframes blink {  
+    0% { color: red; }
+    100% { color: black; }
+  }
+  @-webkit-keyframes blink {
+    0% { color: red; }
+    100% { color: black; }
+  }
+  .parpadea {
+    -webkit-animation: blink 1s linear infinite;
+    -moz-animation: blink 1s linear infinite;
+    animation: blink 1s linear infinite;
+  }
+  /* Basic styling for the sub-menu */
+.custom-collapsible-content {
+    /* Hide by default */
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out; /* Smooth transition for expand/collapse */
+}
+
+/* When the parent is open, show the content */
+.custom-collapsible-parent.open .custom-collapsible-content {
+    max-height: 500px; /* Adjust this value to be larger than your content */
+    transition: max-height 0.3s ease-in;
+}
+
+/* Style for the chevron icon */
+.custom-chevron {
+    transition: transform 0.3s ease-out; /* Smooth rotation */
+}
+
+/* Rotate the chevron when the parent is open */
+.custom-collapsible-parent.open .custom-chevron {
+    transform: rotate(-90deg); /* Rotate up for open state */
+}
+
+/* Optional: Add some padding/margin for sub-items */
+.custom-collapsible-content .nav-item .nav-link {
+    padding-left: 30px; /* Indent sub-menu items */
+}

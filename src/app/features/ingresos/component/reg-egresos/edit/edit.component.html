@@ -1,0 +1,126 @@
+<app-proveedor *ngIf="selectedItem == 1" (messageEvent)="receiveMessageProveedor($event)"
+  (closeModal)="setSelectedItem(0)"></app-proveedor>
+<div class="col-md-12">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <h3>REGISTRO EGRESOS</h3>
+      </div>
+      <div class="card-tools">
+        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+          <i class="fas fa-minus"></i>
+        </button>
+      </div>
+    </div>
+<!-- /.card-header -->
+      <div class="card-body">
+            <form>
+                <div class="row mb-4"><!-- Aumenta el margen inferior -->
+                    <div class="col-md-2">
+                        <p-floatlabel variant="on">
+                            <input pInputText id="num_cheque" [(ngModel)]="actualizarEgreso.num_cheque"
+                                [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper required />
+                            <label>Nro. Cheque:<span style="color: red">*</span></label>
+                        </p-floatlabel>
+                        <div *ngIf="submitted && !actualizarEgreso.num_cheque" class="text-danger">
+                            El número de cheque es obligatorio.
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <p-floatlabel variant="on">
+                            <input pInputText id="lugar" [(ngModel)]="actualizarEgreso.lugar"
+                                [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper required />
+                            <label for="Lugar">Lugar:</label>
+                        </p-floatlabel>
+                    </div>
+                    <div class="col-md-2">
+                        <p-datepicker [(ngModel)]="actualizarEgreso.fecha" [ngModelOptions]="{standalone: true}" 
+                            [showIcon]="true" inputId="buttondisplay" [showOnFocus]="false" disabled="true"  dateFormat="dd/mm/yy" />
+                        <div *ngIf="submitted && !actualizarEgreso.fecha" class="text-danger">
+                            La fecha es obligatoria.
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <p-floatlabel variant="on">
+                            <p-inputnumber [(ngModel)]="actualizarEgreso.monto" inputId="monto" mode="currency"
+                                currency="BOB" locale="es-BO" [ngModelOptions]="{standalone: true}" required />
+                            <label>Monto:<span style="color: red">*</span></label>
+                        </p-floatlabel>
+                        <div *ngIf="submitted && !actualizarEgreso.monto" class="text-danger">
+                            El monto es obligatorio.
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <p-floatlabel variant="on">
+                            <input pInputText id="estado" [(ngModel)]="actualizarEgreso.estado"
+                                [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper required />
+                            <label for="estado">Estado:</label>
+                        </p-floatlabel>
+                    </div>
+                    <div class="col-md-2">
+                        <p-inputgroup>
+                            <input pInputText id="proveedor" [(ngModel)]="actualizarEgreso.proveedor"
+                                [ngModelOptions]="{standalone: true}" [attr.disabled]="true" required
+                                placeholder="Proveedor" />
+                            <button pButton type="button" label="Buscar" class="p-button-success"
+                                (click)="setModalProveedor()" data-toggle="modal"
+                                data-target="#modalProveedor"></button>
+                        </p-inputgroup>
+                        <div *ngIf="submitted && !actualizarEgreso.proveedor" class="text-danger">
+                            El proveedor es obligatorio.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-4"><!-- Aumenta el margen inferior -->
+                    <div class="col-md-2">
+                        <p-floatlabel variant="in">
+                            <p-datepicker [(ngModel)]="actualizarEgreso.fecha_cobro" inputId="fecha_cobro" [showIcon]="true"
+                                iconDisplay="input" [ngModelOptions]="{standalone: true}"  dateFormat="dd/mm/yy" />
+                            <label for="fecha_cobro">Fecha Cobro</label>
+                        </p-floatlabel>
+                        <div *ngIf="submitted && !actualizarEgreso.fecha_cobro" class="text-danger">
+                            La fecha es obligatoria.
+                        </div>
+                    </div>
+                   
+                    <div class="col-md-1">
+                        <p-floatlabel variant="on">
+                            <p-select [options]="[{label: 'SI', value: 'SI'}, {label: 'NO', value: 'NO'}]"
+                                [(ngModel)]="actualizarEgreso.cerrado" [ngModelOptions]="{standalone: true}" class="w-full"
+                                inputId="cerrado"></p-select>
+                            <label for="cerrado">Cerrado:<span style="color: red">*</span></label>
+                        </p-floatlabel>
+                        <div *ngIf="submitted && !actualizarEgreso.cerrado" class="text-danger">
+                            El campo Cerrado es obligatorio.
+                        </div>
+                    </div>
+                    <div class="col-md-1">
+                        <p-floatlabel variant="on">
+                            <p-select [options]="[{label: 'SI', value: 'SI'}, {label: 'NO', value: 'NO'}]"
+                                [(ngModel)]="actualizarEgreso.cobrado" [ngModelOptions]="{standalone: true}" class="w-full"
+                                inputId="cobrado"></p-select>
+                            <label for="cobrado">Cobrado:<span style="color: red">*</span></label>
+                        </p-floatlabel>
+                        <div *ngIf="submitted && !actualizarEgreso.cobrado" class="text-danger">
+                            El campo Cobrado es obligatorio.
+                        </div>
+                    </div>
+                     <div class="col-md-2">
+                        <textarea pTextarea id="observacion" [(ngModel)]="actualizarEgreso.observacion"
+                            [ngModelOptions]="{standalone: true}"  rows="5" cols="30" placeholder="Observacion" appUpper>
+                        </textarea>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button (click)="goBack()" type="button" style="margin-left: 10px"
+                        class="btn btn-danger float-right btn-space">Cancelar</button>
+                    <button type="button" class="btn btn-success float-right btn-space " (click)="actualizarRegistro()"
+                        [disabled]="isLoading">
+                        <i class="fa"
+                            [ngClass]="{'fa-spin fa-spinner': isLoading, '': !isLoading}"></i>{{button}}</button>
+                </div>
+                <div class="col-md-2">
+                </div>
+            </form>
+        </div>

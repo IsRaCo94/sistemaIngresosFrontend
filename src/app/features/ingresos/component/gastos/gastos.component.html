@@ -1,0 +1,88 @@
+<section class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1>EJECUCION PRESUPUESTARIA</h1>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a routerLink="/gastos/dashboard">Inicio</a></li>
+          <li class="breadcrumb-item active">Presupuestos</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="content">
+  <div class="container-fluid">
+    <!-- <div *ngIf="loading">
+            <div class="preloader flex-column justify-content-center align-items-center">
+                <img src="assets/img/logocbes.jpg" class="animation__wobble" alt="cossmilLogo" height="80"
+                    width="80">
+            </div>
+        </div> -->
+    <div class="row" *ngIf="!loading">
+      <div class="col-md-12">
+        <div class="card card-primary">
+          <div class="card-body">
+            <div class="row">
+              <div class="col-lg-4">
+                <label>ACCIONES: </label>
+                <br>
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal"
+                  [routerLink]="['create']">
+                  <em class="fa fa-plus"></em>&nbsp; Nuevo Registro
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card card-primary" style="padding: 20px;">
+          <div class="row">
+            <table datatable [dtOptions]="dtOptions" class="row-border hover table table-bordered table-wrapper">
+              <thead>
+                <tr>
+                  <th *ngFor="let titulo of titulosColumnas">
+                    {{titulo}}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <ng-container *ngFor="let lista of gasto; let i=index">
+                <tr *ngIf="lista.baja !== true">
+                    <td>{{lista.entidad}}</td>
+                    <td>{{lista.unidad}}</td>
+                    <td>{{lista.fechaElab | date:'dd-MM-yyyy':'-0400'}}</td>
+                    <td>{{lista.num_prev}}</td>
+                    <td>{{lista.num_comp}}</td>
+                    <td>{{lista.num_dev}}</td>
+                    <td>{{lista.num_pag}}</td>
+                    <td>{{lista.num_sec }}</td>
+                    <td>{{lista.glosa}}</td>
+                    <td>{{lista.estado}}</td>
+                    <td>
+                     <div *ngIf="lista.baja!==true">
+                        <button type="button" class="btn btn-outline-warning" style="margin: 3px;"
+                          (click)="editarRegistro(lista.id_gasto)" data-placement="bottom" data-toggle="tooltip"
+                          title="Editar"><i class="fa-solid fa-pencil"></i> </button>
+                        <button type="button" class="btn btn-outline-danger" style="margin: 3px;"
+                          (click)="eliminarRegistro(lista.id_gasto)" data-placement="bottom" data-toggle="tooltip"
+                          title="Borrar"><i class="fa-solid fa-trash"></i> </button>
+                          <button type="button" class="btn btn-outline-primary" style="margin: 3px;"
+                          (click)="detalleRegistro(lista.id_gasto)" data-placement="bottom" data-toggle="tooltip"
+                          title="Detalle"><i class="fa-solid fa-list"></i> </button>
+                      </div>
+                    </td>
+                  </tr>
+                </ng-container>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>

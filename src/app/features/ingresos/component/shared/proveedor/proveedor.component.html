@@ -1,0 +1,58 @@
+<div class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">AGREGAR PROVEEDORES</h5>
+                <button type="button" class="close" (click)="onCloseModal()"  aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- <div >
+                    <div class="preloader flex-column justify-content-center align-items-center">
+                        <img src="assets/img/logo_mediano.png" class="animation__wobble" alt="cossmilLogo" height="80"
+                            width="80">
+                    </div>
+                </div> -->
+                <div *ngIf="!loading" >
+                    <div class="card card-primary" style="padding: 20px;">
+                        <div class="row">
+                            <table datatable [dtOptions]="dtOptions"
+                             class="row-border hover table table-bordered table-wrapper">
+                                <thead>
+                                    <tr>
+                                       <th scope="col" *ngFor="let titulo of titulosColumnas">
+                                            {{titulo}}
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+  <ng-container *ngFor="let lista of proveedores; let i = index">
+    <tr *ngIf="lista.baja !== true">
+      <td>{{ lista.EMP_COD }}</td>
+      <td>{{ lista.EMP_NOM }}</td>
+      <td>{{ lista.EMP_NIT }}</td>
+      <td>{{ lista.TIPO }}</td>
+      
+      <!-- <td>{{ lista.tipo }}</td> -->
+      <td>
+        <button *ngIf="true" data-dismiss="modal" (click)="setProveedor(lista)"
+          title="Editar" type="button" class="btn btn-outline-success">
+          Seleccionar
+        </button>
+      </td>
+    </tr>
+  </ng-container>
+</tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                   (click)="onCloseModal()"  >Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>

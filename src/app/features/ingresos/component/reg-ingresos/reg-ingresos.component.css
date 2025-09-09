@@ -1,0 +1,27 @@
+.status-CONSOLIDADO {
+ color: #155724; /* Darker green for text */
+  background-color: #d4edda; /* Lighter green for background */
+  font-weight: bold;
+  padding: 5px 8px; /* Padding for the background around the text */
+  border-radius: 4px; /* Rounded corners for the background */
+  display: block; /* Essential for padding and background to apply correctly to span */
+}
+.status-inactivo {
+  color: #dc3545; /* Red color for 'inactivo' */
+  background-color: #f68585; /* Lighter green for background */
+  font-weight: bold;
+  padding: 5px 8px; /* Padding for the background around the text */
+  border-radius: 4px; /* Rounded corners for the background */
+  display: block; /* Essential for padding and background to apply correctly to span */
+}
+.status-PENDIENTE {
+  color: #919e5d; /* Red color for 'inactivo' */
+  background-color: #f0e634; /* Lighter green for background */
+  font-weight: bold;
+  padding: 5px 8px; /* Padding for the background around the text */
+  border-radius: 4px; /* Rounded corners for the background */
+  display: block; /* Essential for padding and background to apply correctly to span */
+}
+.align-middle-cell {
+    vertical-align: middle; /* Aligns content vertically to the middle */
+}

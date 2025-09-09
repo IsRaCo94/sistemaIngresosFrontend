@@ -1,0 +1,11 @@
+.bg-emision-recibo {
+    background-color: rgba(235, 247, 249, 0.62); /* light cyan with transparency */
+  }
+  
+  .bg-emision-factura {
+    background-color: rgba(217, 244, 224, 0.58); /* light orange with transparency */
+  }
+  
+  .bg-emision-documento {
+    background-color: rgba(244, 245, 233, 0.49); /* light teal with transparency */
+  }

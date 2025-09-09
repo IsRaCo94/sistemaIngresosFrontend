@@ -1,0 +1,196 @@
+<!-- Main Sidebar Container -->
+<aside class="main-sidebar sidebar-dark-primary elevation-4">
+  <!-- Brand Logo -->
+  <a href="javascript:void(0)" class="brand-link">
+    <img src="assets/img/logocbes.jpg" alt="AdminLTE Logo" class="brand-image img-circle elevation-3"
+      style="opacity: .8">
+    <span class="brand-text font-weight-light">INGRESOS CBES</span>
+  </a>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <!-- Sidebar user panel (optional) -->
+    <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+      <div class="image">
+        <img src="assets/img/user.png" class="img-circle elevation-2" alt="User Image">
+      </div>
+      <div class="info">
+        <a href="javascript:void(0)" class="d-block"></a>
+        <small class="text-center" style="color: white;">
+
+        </small>
+      </div>
+    </div>
+    <!-- Sidebar Menu -->
+    <nav class="mt-2">
+      <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+        <li class="nav-item" routerLinkActive="active">
+          <a href="javascript:void(0)" class="nav-link">
+            <i class="nav-icon fa-solid fa-house"></i>
+            <p>
+              Inicio
+            </p>
+          </a>
+        </li>
+
+        <li class="nav-item has-treeview" [ngClass]="{'menu-open': menudespegable}">
+          <a href="#" class="nav-link" [ngClass]="{'active': menudespegable}"
+            (click)="toggle(); $event.preventDefault()">
+            <i class="fa fa-bars nav-icon"></i>
+            <p>
+              Paramétricas
+              <i class="right fa fa-angle-left"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview" [style.display]="menudespegable ? 'block' : 'none'">
+            <li class="nav-item">
+              <a href="javascript:void(0)" (click)="onMenuClick('personas','')" class="nav-link">
+                <i class="nav-icon fa-brands fa-buffer"></i>
+                <p>Personas</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="javascript:void(0)" (click)="onMenuClick('empresas','')" class="nav-link">
+                <i class="nav-icon fa-brands fa-buffer"></i>
+                <p>Proveedores/Empresas</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="javascript:void(0)" (click)="onMenuClick('cuentas','')" class="nav-link">
+                <i class="nav-icon fa-brands fa-buffer"></i>
+                <p>Cuentas Bancarias</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="javascript:void(0)" (click)="onMenuClick('libreta','')" class="nav-link">
+                <i class="nav-icon fa-brands fa-buffer"></i>
+                <p>Libreta Origen</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="javascript:void(0)" (click)="onMenuClick('rubros','')" class="nav-link">
+                <i class="nav-icon fa-brands fa-buffer"></i>
+                <p>Rubros</p>
+              </a>
+            </li>
+          </ul>
+        </li>
+        <li class="nav-item has-treeview" [ngClass]="{'menu-open': ingresosDespegable}">
+          <a href="#" class="nav-link" [ngClass]="{'active': ingresosDespegable}"
+            (click)="toggleIngresos(); $event.preventDefault()">
+            <i class="fa-solid fa-money-bill-transfer"></i>
+            <p>
+              Ingresos/Egresos
+              <i class="right fa fa-angle-left"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview" [style.display]="ingresosDespegable ? 'block' : 'none'">
+            <li class="nav-item">
+              <a href="javascript:void(0)" (click)="onMenuClick('reg-ingresos','')" class="nav-link">
+                <i class="nav-icon  fa-solid fa-arrow-right-long"></i>
+                <p>Ingresos</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="javascript:void(0)" (click)="onMenuClick('reg-egresos','')" class="nav-link">
+                <i class="nav-icon  fa-solid fa-arrow-right-long"></i>
+                <p>Egresos</p>
+              </a>
+            </li>
+          </ul>
+        </li>
+        <li class="nav-item has-treeview" [ngClass]="{'menu-open': gastosDespegable}">
+          <a href="#" class="nav-link" [ngClass]="{'active': gastosDespegable}"
+            (click)="toggleGastos(); $event.preventDefault()">
+            <i class="fa-solid fa-sack-dollar"></i>
+            <p>
+              Ejecucion de Gastos
+              <i class="right fa fa-angle-left"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview" [style.display]="gastosDespegable ? 'block' : 'none'">
+            <li class="nav-item">
+              <a href="javascript:void(0)" (click)="onMenuClick('gastos','')" class="nav-link">
+               <i class="nav-icon  fa-solid fa-arrow-right-long"></i>
+                <p>Presupuestos</p>
+              </a>
+            </li>
+
+          </ul>
+        </li>
+
+        <!-- <li class="nav-header">TRANSACCIONES</li>
+        <li class="nav-item">
+          <a href="javascript:void(0)" (click)="onMenuClick('reg-ingresos','')" class="nav-link">
+            <i class="nav-icon fa-solid fa-cash-register"></i>
+            <p>
+              Ingresos
+            </p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="javascript:void(0)" (click)="onMenuClick('reg-egresos','')" class="nav-link">
+            <i class="nav-icon fa-solid fa-money-bill"></i>
+            <p>
+              Egresos
+            </p>
+          </a>
+        </li>
+        <li class="nav-header">EJECUCION DE GASTOS</li>
+        <li class="nav-item">
+          <a href="javascript:void(0)" (click)="onMenuClick('gastos','')" class="nav-link">
+            <i class="nav-icon fa-solid fa-money-bill-transfer"></i>
+            <p>
+              Presupuestos
+            </p>
+          </a>
+        </li> -->
+        <li class="nav-item has-treeview" [ngClass]="{'menu-open': reportesDespegable}">
+          <a href="#" class="nav-link" [ngClass]="{'active': reportesDespegable}"
+            (click)="toggleReportes(); $event.preventDefault()">
+            <i class="fa fa-file-alt nav-icon"></i>
+            <p>
+              Reportes Ingresos
+              <i class="right fa fa-angle-left"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview" [style.display]="reportesDespegable ? 'block' : 'none'">
+            <li class="nav-item">
+              <a href="javascript:void(0)" (click)="onMenuClick('tipos-ingresos','')" class="nav-link">
+                <i class="nav-icon fa-solid fa-chart-pie"></i>
+                <p>Tipos de Ingresos</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="javascript:void(0)" (click)="onMenuClick('tipos-rubros','')" class="nav-link">
+                <i class="nav-icon fa-solid fa-chart-pie"></i>
+                <p>Rubros de Ingresos</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="javascript:void(0)" (click)="onMenuClick('informe-diario','')" class="nav-link">
+                <i class="nav-icon fa-solid fa-chart-pie"></i>
+                <p> Informe Diario</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="javascript:void(0)" (click)="onMenuClick('resumen-rubros','')" class="nav-link">
+                <i class="nav-icon fa-solid fa-chart-pie"></i>
+                <p> Resumen Rubros</p>
+              </a>
+            </li>
+             <li class="nav-item">
+              <a href="javascript:void(0)" (click)="onMenuClick('tipos-emision','')" class="nav-link">
+                <i class="nav-icon fa-solid fa-chart-pie"></i>
+                <p> Tipos de Emision</p>
+              </a>
+            </li>
+          </ul>
+        </li>
+
+      </ul>
+    </nav>
+    <!-- /.sidebar-menu -->
+  </div>
+  <!-- /.sidebar -->
+</aside>

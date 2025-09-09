@@ -1,0 +1,265 @@
+<div class="col-md-12">
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">
+                <h3>REGISTRO DE EJECUCION DE GASTOS</h3>
+            </div>
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                    <i class="fas fa-minus"></i>
+                </button>
+            </div>
+        </div>
+        <!-- /.card-header -->
+        <div class="card-body">
+            <form>
+
+                <div class="row mb-5">
+                    <div class="col-md-2">
+                        <p-floatlabel variant="on">
+                            <input pInputText id="entidad" [(ngModel)]="nuevoGasto.entidad"
+                                [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper />
+                            <label for="entidad">Entidad</label>
+                            <div *ngIf="submitted && !nuevoGasto.entidad" class="text-danger">
+                                Obligatorio.
+                            </div>
+                        </p-floatlabel>
+                    </div>
+                    <div class="col-md-2">
+                        <p-floatlabel variant="on">
+                            <input pInputText id="unidad" [(ngModel)]="nuevoGasto.unidad"
+                                [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper />
+                            <label for="unidad">Direccion</label>
+                            <div *ngIf="submitted && !nuevoGasto.unidad" class="text-danger">
+                                Obligatorio.
+                            </div>
+                        </p-floatlabel>
+                    </div>
+                    <div class="col-md-2">
+                        <p-floatlabel variant="on">
+                            <p-datepicker [(ngModel)]="nuevoGasto.fechaElab" [ngModelOptions]="{standalone: true}"
+                                [showIcon]="true" inputId="buttondisplay" [showOnFocus]="false" dateFormat="dd/mm/yy" />
+                            <label for="fecha_reg">Fecha</label>
+                            <div *ngIf="submitted && !nuevoGasto.fechaElab" class="text-danger">
+                                Obligatorio.
+                            </div>
+                        </p-floatlabel>
+                    </div>
+                    <!-- <div class="col-auto">
+                        <div class="form-group">
+                            <select [(ngModel)]="nuevoGasto.id_unidad_id"
+                                (change)="getUnidadChange(nuevoGasto.id_unidad_id)" class=" form-control"
+                                [ngModelOptions]="{standalone: true}" [attr.disabled]="true">
+                                <option [ngValue]="''" selected disabled><label for="id_tipo_ingr_id"
+                                        style="font-weight: bold;">Direccion</label>
+                                </option>
+                                <option *ngFor="let unidad of unidad" [ngValue]="unidad.id_unidad">{{
+                                    unidad.nombreUnidad }}</option>
+                            </select>
+                            <div *ngIf="submitted && !nuevoGasto.id_unidad_id" class="text-danger">
+                                El campo Tipo de Ingreso es obligatorio.
+                            </div>
+                        </div>
+                    </div> -->
+                    <div class="col-md-2">
+                        <p-floatlabel variant="on">
+                            <input pInputText id="moneda" [(ngModel)]="nuevoGasto.moneda"
+                                [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper />
+                            <label for="moneda">Moneda</label>
+                            <div *ngIf="submitted && !nuevoGasto.moneda" class="text-danger">
+                                Obligatorio.
+                            </div>
+                        </p-floatlabel>
+                    </div>
+                    <div class="col-auto">
+                        <p-floatlabel variant="on">
+                            <input pInputText id="num_prev" [(ngModel)]="nuevoGasto.num_prev" style="width: 200px;"
+                                [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper />
+                            <label for="num_prev">N°Preventivo</label>
+                            <div *ngIf="submitted && !nuevoGasto.num_prev" class="text-danger">
+                                Obligatorio.
+                            </div>
+                        </p-floatlabel>
+                    </div>
+                    <div class="col-auto">
+                        <p-floatlabel variant="on">
+                            <input pInputText id="num_comp" [(ngModel)]="nuevoGasto.num_comp" style="width: 50px;"
+                                [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper />
+                            <label for="num_comp">N°Comp</label>
+                            <div *ngIf="submitted && !nuevoGasto.num_comp" class="text-danger">
+                                Obligatorio.
+                            </div>
+                        </p-floatlabel>
+                    </div>
+                    <div class="col-auto">
+                        <p-floatlabel variant="on">
+                            <input pInputText id="num_dev" [(ngModel)]="nuevoGasto.num_dev" style="width: 50px;"
+                                [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper />
+                            <label for="num_dev">N°Dev</label>
+                            <div *ngIf="submitted && !nuevoGasto.num_dev" class="text-danger">
+                                Obligatorio.
+                            </div>
+
+                        </p-floatlabel>
+                    </div>
+                    <div class="col-auto">
+                        <p-floatlabel variant="on">
+                            <input pInputText id="num_pago" [(ngModel)]="nuevoGasto.num_pag" style="width: 50px;"
+                                [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper />
+                            <label for="">N°Pago</label>
+                            <div *ngIf="submitted && !nuevoGasto.num_pag" class="text-danger">
+                                Obligatorio.
+                            </div>
+
+                        </p-floatlabel>
+                    </div>
+                    <div class="col-auto">
+                        <p-floatlabel variant="on">
+                            <input pInputText id="num_sec" [(ngModel)]="nuevoGasto.num_sec" style="width: 50px;"
+                                [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper />
+                            <label for="">N°Sec</label>
+                            <div *ngIf="submitted && !nuevoGasto.num_sec" class="text-danger">
+                                Obligatorio.
+                            </div>
+
+                        </p-floatlabel>
+                    </div>
+
+                </div>
+                <div class="row mb-5">
+                    <div class="col-md-2">
+                        <p-select [(ngModel)]="nuevoGasto.regularizacion" [ngModelOptions]="{standalone: true}"
+                            [options]="[
+                          {label: 'SI', value: 'SI'},
+                          {label: 'NO', value: 'NO'},
+                            ]" optionLabel="label" optionValue="value" placeholder="Regularizacion"
+                            class="w-full md:w-56">
+                        </p-select>
+                        <div *ngIf="submitted && !nuevoGasto.regularizacion" class="text-danger">
+                            Campo es obligatorio.
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <p-select [(ngModel)]="nuevoGasto.tipo_doc" [ngModelOptions]="{standalone: true}" [options]="[
+                          {label: 'ORIGINAL', value: 'ORIGINAL'},
+                          {label: 'COPIA', value: 'COPIA'}
+                            ]" optionLabel="label" optionValue="value" placeholder="Tipo de Documento"
+                            class="w-full md:w-56">
+
+                        </p-select>
+                        <div *ngIf="submitted && !nuevoGasto.tipo_doc" class="text-danger">
+                            Obligatorio.
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <p-select [(ngModel)]="nuevoGasto.doc_respa" [ngModelOptions]="{standalone: true}" [options]="[
+                          {label: 'HOJA DE RUTA', value: 'HOJA DE RUTA'},
+                          {label: 'OTRO', value: 'OTRO'},
+                            ]" optionLabel="label" optionValue="value" placeholder="Documento Respaldo"
+                            class="w-full md:w-56">
+
+                        </p-select>
+                    </div>
+                    <div class="col-md-2">
+                        <p-floatlabel variant="on">
+                            <input pInputText [(ngModel)]="nuevoGasto.num_doc" [ngModelOptions]="{standalone: true}"
+                                [attr.disabled]="true" appUpper />
+                            <label for="">N°Doc.</label>
+                            <div *ngIf="submitted && !nuevoGasto.num_doc" class="text-danger">
+                                Obligatorio.
+                            </div>
+                        </p-floatlabel>
+                    </div>
+                    <div class="col-md-2">
+                        <p-floatlabel variant="on">
+                            <p-datepicker [(ngModel)]="nuevoGasto.fechaRec" [ngModelOptions]="{standalone: true}"
+                                [showIcon]="true" inputId="buttondisplay" dateFormat="dd/mm/yy" />
+                            <label for="fecha_reg">Fecha de Recepcion</label>
+                            <div *ngIf="submitted && !nuevoGasto.fechaRec" class="text-danger">
+                                Campo es obligatorio.
+                            </div>
+                        </p-floatlabel>
+                    </div>
+                </div>
+                <div class="row mb-5">
+
+                    <div class="col-md-2">
+                        <p-select [(ngModel)]="nuevoGasto.tipo_ejec" [ngModelOptions]="{standalone: true}" [options]="[
+                          {label: 'NORMAL GASTO', value: 'NORMAL GASTO'}, 
+                            ]" optionLabel="label" optionValue="value" placeholder="Tipo de Ejecucion"
+                            class="w-full md:w-56">
+                        </p-select>
+                        <div *ngIf="submitted && !nuevoGasto.tipo_ejec" class="text-danger">
+                            Campo es obligatorio.
+                        </div>
+                    </div>
+
+                    <div class="col-md-2">
+                        <select [(ngModel)]="nuevoGasto.id_num_clasif_id"
+                            (change)="getClasificadorGastoChance(nuevoGasto.id_num_clasif_id)" class="form-control"
+                            [ngModelOptions]="{standalone: true}" [attr.disabled]="true">
+                            <option [ngValue]="''" selected disabled>Clase de Gasto...</option>
+                            <option *ngFor="let tipo of clasificador" [ngValue]="tipo.id_num_clasif">{{tipo.des_clasif
+                                }}</option>
+                        </select>
+                        <div *ngIf="submitted && !nuevoGasto.id_num_clasif_id" class="text-danger">
+                            El campo Clasificador es obligatorio.
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <p-select [(ngModel)]="nuevoGasto.tipo_impu" [ngModelOptions]="{standalone: true}" [options]="[
+                      {label: 'CON IMPUTACION', value: true},
+                          {label: 'SIN IMPUTACION', value: false}
+                            ]" optionLabel="label" optionValue="value" placeholder="Tipo de Formulario"
+                            class="w-full md:w-56" (onChange)="onTipoChange()">
+                        </p-select>
+                        <div *ngIf="submitted && !nuevoGasto.tipo_impu" class="text-danger">
+                            Campo es obligatorio.
+                        </div>
+                    </div>
+                    <div class="row mb-2" style="align-items: center;">
+                        <div class="col-auto d-flex align-items-center" *ngIf="nuevoGasto.tipo_impu === true">
+                            <p-checkbox inputId="preventivo" name="preventivo" [(ngModel)]="nuevoGasto.preventivo"
+                                [binary]="true" />
+                            <label for="preventivo" class="ml-2 mb-0" style="min-width: 90px;">Preventivo</label>
+                        </div>
+                        <div class="col-auto d-flex align-items-center" *ngIf="nuevoGasto.tipo_impu === true">
+                            <p-checkbox inputId="compromiso" name="compromiso" [(ngModel)]="nuevoGasto.compromiso"
+                                [binary]="true" />
+                            <label for="compromiso" class="ml-2 mb-0" style="min-width: 90px;">Compromiso</label>
+                        </div>
+                        <div class="col-auto d-flex align-items-center"
+                            *ngIf="nuevoGasto.tipo_impu === true || nuevoGasto.tipo_impu === false">
+                            <p-checkbox inputId="devengado" name="devengado" [(ngModel)]="nuevoGasto.devengado"
+                                [binary]="true" />
+                            <label for="devengado" class="ml-2 mb-0" style="min-width: 90px;">Devengado</label>
+                        </div>
+                        <div class="col-auto d-flex align-items-center"
+                            *ngIf="nuevoGasto.tipo_impu === true || nuevoGasto.tipo_impu === false">
+                            <p-checkbox inputId="pagado" name="pagado" [(ngModel)]="nuevoGasto.pagado"
+                                [binary]="true" />
+                            <label for="pagado" class="ml-2 mb-0" style="min-width: 90px;">Pago</label>
+                        </div>
+
+                    </div>
+
+                </div>
+                <div class="row md-5">
+                    <div class="col-auto">
+                        <textarea pTextarea id="glosa" [(ngModel)]="nuevoGasto.glosa"
+                            [ngModelOptions]="{standalone: true}" rows="4" cols="70" placeholder="Glosa" appUpper>
+                        </textarea>
+                    </div>
+
+                </div>
+
+                <div class="card-footer">
+                    <button type="button" style="margin-left: 10px" class="btn btn-danger float-right btn-space"
+                        (click)="goBack()">Cancelar</button>
+                    <button type="button" class="btn btn-success float-right btn-space " (click)="guardarRegistro()"
+                        [disabled]="isLoading">
+                        <i class="fa"
+                            [ngClass]="{'fa-spin fa-spinner': isLoading, '': !isLoading}"></i>{{button}}</button>
+                </div>
+            </form>
+        </div>

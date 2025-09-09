@@ -1,0 +1,84 @@
+<section class="content-header">
+    <div class="container-fluid">
+        <div *ngIf="loading">
+            <div class="preloader flex-column justify-content-center align-items-center">
+                <div *ngIf="loading" style="width: 100%; margin-bottom: 1rem;">
+                    <p-progressBar mode="indeterminate" styleClass="w-100" [style]="{height: '6px'}"></p-progressBar>
+                  </div>
+            </div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>REPORTE POR TIPO DE INGRESOS</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a routerLink="/inicio/dashboard">Inicio</a></li>
+                    <li class="breadcrumb-item active">reporte</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</section>
+<section class="content">
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-header">
+            </div>
+            <div class="card-body">
+                <div class="row mb-4 ">
+                    <div class="col-md-2">
+                        <label>Tipo de Ingreso:</label>
+                        <select [(ngModel)]="nuevoIngreso.id_tipo_ingr_id"
+                            (change)="getTipoIngresoChange(nuevoIngreso.id_tipo_ingr_id)" class="form-control"
+                            [ngModelOptions]="{standalone: true}" [attr.disabled]="true">
+                            <option [ngValue]="''" selected disabled>Seleccione un Ingreso...</option>
+                            <option [ngValue]="''" selected enabled>TODOS LOS INGRESOS</option>
+                            <option *ngFor="let tipo of tipoIngresos" [ngValue]="tipo.id_tipo_ingr">{{
+                                tipo.tipo_ingr }}</option>
+                        </select>
+
+                    </div>
+                    <div class="col-md-2">
+                        <label>Regional:</label>
+                        <p-select [(ngModel)]="nuevoIngreso.lugar" [ngModelOptions]="{standalone: true}" [options]="[
+                          {label: 'REGIONAL LA PAZ', value: 'REGIONAL LA PAZ'},
+                          {label: 'REGIONAL COCHABAMBA', value: 'REGIONAL COCHABAMBA'},
+                          {label: 'REGIONAL SANTA CRUZ', value: 'REGIONAL SANTA CRUZ'}
+                            ]" optionLabel="label" optionValue="value" placeholder="Regional" class="w-full md:w-56">
+                        </p-select>
+                    </div>
+                    <div class="w3-third w3-container">
+                        <div class="form-group">
+                            <label for="felab"><b>Fecha Inicio:</b></label>
+                            <input type="date" class="form-control" name="felab" id="felab"
+                                [(ngModel)]="busqueda.fechaInicio">
+
+                        </div>
+                        <div *ngIf="submitted && !busqueda.fechaInicio" class="text-danger">
+                            Fecha es obligatoria.
+                        </div>
+                    </div>
+                    <div class="w3-third w3-container">
+                        <div class="form-group">
+                            <label for="felab"><b>Fecha Fin:</b></label>
+                            <input type="date" class="form-control" name="felab" id="felab"
+                                [(ngModel)]="busqueda.fechaFin">
+                        </div>
+                        <div *ngIf="submitted && !busqueda.fechaInicio" class="text-danger">
+                            Fecha es obligatoria.
+                        </div>
+                    </div>
+
+
+                </div>
+                <div class="w3-row w3-container" style="display: flex; justify-content: flex-end">
+                    <!-- <a href="javascript:void(0)" (click)="descargarReporte()" class="btn btn-primary mr-2">Descargar Reporte</a> -->
+                    <a href="javascript:void(0)" (click)="generarReporte()" class="btn btn-info mr-2">Generar Reporte</a>
+                    <a href="javascript:void(0)" (click)="exportExcel()" class="btn btn-success">Exportar a Excel</a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</section>

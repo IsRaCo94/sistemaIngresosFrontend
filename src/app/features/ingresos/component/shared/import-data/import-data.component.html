@@ -1,0 +1,38 @@
+<div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.5)">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">PROVEEDORES A IMPORTAR</h5>
+        <button type="button" class="close" (click)="onCloseModal()">
+          <span>&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <table class="table table-bordered" *ngIf="excelPreview.length > 0">
+          <thead>
+            <tr>
+              <th>CÓDIGO</th>
+              <th>NOMBRE</th>
+              <th>TIPO</th>
+              <th>DIRECCIÓN</th>
+              <th>TELÉFONO</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let emp of excelPreview">
+              <td>{{ emp.codigo }}</td>
+              <td>{{ emp.nombre }}</td>
+              <td>{{ emp.tipo }}</td>
+              <td>{{ emp.direccion }}</td>
+              <td>{{ emp.telefono }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="onCloseModal()">Cancelar</button>
+        <button class="btn btn-success" (click)="guardarRegistro()" [disabled]="!excelFileToImport">Importar</button>
+      </div>
+    </div>
+  </div>
+</div>

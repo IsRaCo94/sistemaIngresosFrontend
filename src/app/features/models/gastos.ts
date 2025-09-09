@@ -1,0 +1,29 @@
+export class Gastos {
+    id_gasto!: number;
+    num_prev!: string;
+    num_comp!: string;
+    num_dev!: string;
+    num_pag!: string;
+    num_sec!: string;
+    entidad!: string;
+    unidad!: string;
+    tipo!: string;
+    tipo_doc!: string;
+    tipo_ejec!: string;
+    tipo_impu!: boolean;
+    doc_respa!: string;
+    num_doc!: string;
+    regularizacion!: string;
+    fechaElab!: Date;
+    fechaRec!: Date;
+    estado!: string;
+    glosa!: string;
+    moneda!: string;
+    preventivo!: boolean;
+    compromiso!: boolean;
+    devengado!: boolean;
+    pagado!: boolean;
+    baja!: boolean;
+    id_num_clasif_id!: string;
+    des_clasif!: string;
+}

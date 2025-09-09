@@ -1,0 +1,48 @@
+<div class="col-md-12">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <h3>REGISTRO DE CUENTAS</h3>
+      </div>
+      <div class="card-tools">
+        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+          <i class="fas fa-minus"></i>
+        </button>
+      </div>
+    </div>
+    <!-- /.card-header -->
+    <div class="card-body">
+      <form>
+        <div class="row mb-2">
+         <div class="col-md-2">
+            <p-floatlabel>
+              <input pInputText id="banco"  [(ngModel)]="nuevaCuenta.banco" [ngModelOptions]="{standalone: true}"
+               [attr.disabled]="true" appUpper/>
+              <label for="">Banco</label>
+            </p-floatlabel>
+         
+          </div>
+          <div class="col-md-2">
+            <p-floatlabel >
+              <input pInputText id="cuenta" [(ngModel)]="nuevaCuenta.cuenta" [ngModelOptions]="{standalone: true}"
+               [attr.disabled]="true" appUpper/>
+              <label  for="" >Cuenta</label>
+            </p-floatlabel>
+          </div>
+          <div class="col-md-2">
+            <p-floatlabel >
+              <input pInputText id="des_cuenta" [(ngModel)]="nuevaCuenta.des_cuenta" [ngModelOptions]="{standalone: true}"
+               [attr.disabled]="true" appUpper/>
+             <label  for="" >Descripcion Cuenta</label>
+            </p-floatlabel>
+          </div>
+        </div>
+        <div class="card-footer">
+          <button type="button" style="margin-left: 10px" class="btn btn-danger float-right btn-space"
+          (click)="goBack()" >Cancelar</button>
+         <button type="button" class="btn btn-success float-right btn-space " (click)="guardarRegistro()"
+            [disabled]="isLoading">
+            <i class="fa" [ngClass]="{'fa-spin fa-spinner': isLoading, '': !isLoading}"></i>{{button}}</button>
+        </div>
+      </form>
+    </div>

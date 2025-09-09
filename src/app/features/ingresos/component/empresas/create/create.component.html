@@ -1,0 +1,67 @@
+<div class="col-md-12">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <h3>REGISTRO PROVEEDORES</h3>
+      </div>
+      <div class="card-tools">
+        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+          <i class="fas fa-minus"></i>
+        </button>
+      </div>
+    </div>
+    <!-- /.card-header -->
+    <div class="card-body">
+      <form>
+        <div class="row mb-2">
+          <!-- <div class="col-md-2">
+            <p-floatlabel>
+              <input pInputText id="codigo" [(ngModel)]="newEmpresa.codigo" [ngModelOptions]="{standalone: true}"
+                [attr.disabled]="true" appUpper />
+              <label for="codigo">Código</label>
+            </p-floatlabel>
+            <div *ngIf="submitted && !newEmpresa.codigo" class="text-danger">
+              El código es obligatorio.
+            </div>
+          </div> -->
+          <div class="col-md-2">
+            <p-floatlabel >
+              <input pInputText id="nombre" [(ngModel)]="newEmpresa.nombre" [ngModelOptions]="{standalone: true}"
+                [attr.disabled]="true" appUpper />
+              <label for="nombre">Nombre</label>
+            </p-floatlabel>
+            <div *ngIf="submitted && !newEmpresa.nombre" class="text-danger">
+              El nombre es obligatorio.
+            </div>
+          </div>
+          <div class="col-md-2">
+            <p-floatlabel >
+              <input pInputText id="direccion" [(ngModel)]="newEmpresa.nit" [ngModelOptions]="{standalone: true}"
+                [attr.disabled]="true" appUpper />
+              <label for="direccion">Nro. de Nit</label>
+            </p-floatlabel>
+          </div>
+          <!-- <div class="col-md-2">
+            <p-floatlabel >
+              <input pInputText id="telefono" [(ngModel)]="newEmpresa.telefono" [ngModelOptions]="{standalone: true}"
+                [attr.disabled]="true" appUpper />
+              <label for="telefono">Teléfono</label>
+            </p-floatlabel>
+          </div>
+          <div class="col-md-2">
+            <p-select [(ngModel)]="newEmpresa.tipo" [ngModelOptions]="{standalone: true}" [options]="[
+               {label: 'EGRESOS', value: 'EGRESOS'},
+               {label: 'INGRESOS', value: 'INGRESOS'}
+               ]" optionLabel="label" optionValue="value" placeholder="Tipo de Ingreso" class="w-full md:w-56">
+            </p-select>
+          </div> -->
+        </div>
+        <div class="card-footer">
+          <button type="button" style="margin-left: 10px" class="btn btn-danger float-right btn-space"
+            (click)="goBack()">Cancelar</button>
+          <button type="button" class="btn btn-success float-right btn-space " (click)="guardarRegistro()"
+            [disabled]="isLoading">
+            <i class="fa" [ngClass]="{'fa-spin fa-spinner': isLoading, '': !isLoading}"></i>{{button}}</button>
+        </div>
+      </form>
+    </div>

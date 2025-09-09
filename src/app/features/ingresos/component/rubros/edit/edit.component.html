@@ -1,0 +1,48 @@
+<div class="col-md-12">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <h3>REGISTRO DE RUBROS</h3>
+      </div>
+      <div class="card-tools">
+        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+          <i class="fas fa-minus"></i>
+        </button>
+      </div>
+    </div>
+    <!-- /.card-header -->
+    <div class="card-body">
+      <form>
+        <div class="row mb-2">
+         <div class="col-md-2">
+            <p-floatlabel>
+              <input pInputText id="num_rubro" [(ngModel)]="actualizarRubro.num_rubro" [ngModelOptions]="{standalone: true}"
+               [attr.disabled]="true" appUpper />
+              <label for="">Numero de Rubro</label>
+            </p-floatlabel>
+          </div>
+          <div class="col-md-3">
+            <p-floatlabel >
+              <input pInputText id="nombre" [(ngModel)]="actualizarRubro.nombre" [ngModelOptions]="{standalone: true}"
+               [attr.disabled]="true" appUpper style="width: 400px;" />
+              <label  for="" >Nombre</label>
+            </p-floatlabel>
+          </div>
+          <div class="col-md-3">
+            <p-floatlabel >
+              <input pInputText id="entidad_otorgante"  [(ngModel)]="actualizarRubro.entidad_otorgante" [ngModelOptions]="{standalone: true}"
+               [attr.disabled]="true" appUpper />
+             <label  for="" >Entidad Otorgante</label>
+            </p-floatlabel>
+          </div>
+        </div>
+     
+      </form>
+         <div class="card-footer">
+          <button type="button" style="margin-left: 10px" class="btn btn-danger float-right btn-space"
+          (click)="goBack()" >Cancelar</button>
+         <button type="button" class="btn btn-success float-right btn-space " (click)="actualizarRegistro()"
+            [disabled]="isLoading">
+            <i class="fa" [ngClass]="{'fa-spin fa-spinner': isLoading, '': !isLoading}"></i>{{button}}</button>
+        </div>
+    </div>

@@ -1,0 +1,118 @@
+<section class="content">
+    <div class="container-fluid">
+        <div *ngIf="loading">
+            <div>
+                <!-- <div class="preloader flex-column justify-content-center align-items-center">
+                <img src="assets/img/logo_mediano.png" class="animation__wobble" alt="cossmilLogo" height="80"
+                    width="80">
+            </div> -->
+            </div>
+        </div>
+        <div class="row" *ngIf="!loading">
+            <div class="col-md-12">
+                <div class="card card" *ngIf="VisibleAdd">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <h2>DETALLE RUBROS</h2>
+                        </div>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <button type="button" style="margin-left: 10px" class="btn btn-primary"
+                                    (click)="addDet()">
+                                    Agregar Detalle</button>
+                                <button type="button" style="margin-left: 10px" class="btn btn-danger"
+                                    (click)="goBack()">Salir</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card card-primary" *ngIf="!VisibleAdd">
+                    <div class="card-header">
+                        <h5 class="card-title">{{titleCard}}</h5>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                    
+                        <form [formGroup]="detalleFormGroup">
+                            <div class="row mb-4">
+                           
+                                <div class="col-auto">
+                                    <p-floatlabel variant="on">
+                                        <input pInputText id="servicio" [(ngModel)]="nuevoDetalle.servicio"
+                                            style="width: 400px;" [ngModelOptions]="{standalone: true}"
+                                            [attr.disabled]="true" appUpper required />
+                                        <label for="">Servicio</label>
+                                    </p-floatlabel>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card-footer">
+                        <button type="button" style="margin-left: 10px" class="btn btn-danger float-right btn-space"
+                            (click)="cancelAddDet()">Cancelar</button>
+                        <button *ngIf="saveUpdate" type="button" style="margin-left: 10px"
+                            class="btn btn-success float-right btn-space " (click)=" guardarRegistro()"
+                            [disabled]="isLoading">
+                            <i class="fa"
+                                [ngClass]="{'fa-spin fa-spinner': isLoading, '': !isLoading}"></i>{{button}}</button>
+                        <button *ngIf="!saveUpdate" type="button" style="margin-left: 10px"
+                            class="btn btn-success float-right btn-space " (click)=" actualizarRegistro()"
+                            [disabled]="isLoadingUpdate">
+                            <i class="fa"
+                                [ngClass]="{'fa-spin fa-spinner': isLoadingUpdate, '': !isLoadingUpdate}"></i>{{buttonUpdate}}</button>
+                    </div>
+                </div>
+
+                <div class="card card-primary" style="padding: 20px;">
+                    <div class="row">
+                        <table datatable [dtOptions]="dtOptions" 
+                            class="row-border hover table table-bordered table-wrapper">
+                            <thead>
+                                <tr>
+                                    <th scope="col" *ngFor="let titulo of titulosColumnas">
+                                        {{titulo}}
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <ng-container *ngFor="let lista of det; let i=index">
+                                    <tr *ngIf="lista.baja !== true">
+                                        <td>{{lista.servicio}}</td>        
+                                        <td>
+                                            <div *ngIf="lista.baja !== true" class="d-flex align-items-center">
+                                                <button type="button" class="btn btn-outline-warning"
+                                                    style="margin: 2px;" data-placement="bottom" data-toggle="tooltip"
+                                                    title="Editar">
+                                                    <i class="fa-solid fa-pencil" (click)=" updateDet(lista)"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-danger"
+                                                    style="margin: 2px;" data-placement="bottom" data-toggle="tooltip"
+                                                    title="Borrar">
+                                                    <i class="fa-solid fa-trash"
+                                                        (click)="eliminarDetalle (lista.id_detalle_rubro)"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </ng-container>
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
