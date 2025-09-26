@@ -96,6 +96,7 @@ import { Dropdown, DropdownModule } from 'primeng/dropdown';
 
 
 
+
 // Exporta un arreglo con todos los módulos de PrimeNG
 export const PrimeNgModules = [
   //AccordionModule,

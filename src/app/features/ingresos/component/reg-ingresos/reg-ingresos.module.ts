@@ -12,6 +12,8 @@ import { ImportDataModule } from "../shared/import-data/import-data.module";
 import { InputNumberModule } from 'primeng/inputnumber';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { PrimeNgModules } from '../../../ngprime.modules';
+import { PersonasModule } from "../shared/personas/personas.module";
+import { ImportarDocumentoModule } from "../shared/importar-documento/importar-documento.module";
 
 @NgModule({
   declarations: [
@@ -27,8 +29,8 @@ import { PrimeNgModules } from '../../../ngprime.modules';
     ProveedorModule,
     ImportDataModule,
     PrimeNgModules,
-
-
+    PersonasModule,
+    ImportarDocumentoModule
 ]
 })
 export class RegIngresosModule { }

@@ -1,5 +1,12 @@
 <section class="content-header">
   <div class="container-fluid">
+    <div *ngIf="loading">
+      <div class="preloader flex-column justify-content-center align-items-center">
+          <div *ngIf="loading" style="width: 100%; margin-bottom: 1rem;">
+              <p-progressBar mode="indeterminate" styleClass="w-100" [style]="{height: '6px'}"></p-progressBar>
+            </div>
+      </div>
+  </div>
     <div class="row mb-2">
       <div class="col-sm-6">
         <h1>INGRESOS</h1>
@@ -137,11 +144,11 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let lista of getFacturas(); let i=index">
-                    <td>{{lista.num_recibo}} </td>
+                  <tr *ngFor="let lista of getFacturasPage();  let i=index">
+                    <!-- <td>{{lista.num_recibo}} </td> -->
                     <td>{{lista.num_factura}} </td>
                     <td>{{lista.lugar}}</td>
-                    <td>{{lista.fecha | date:'dd-MM-yyyy':'-0400'}}</td>
+                    <td>{{lista.fecha | date:'dd-MM-yyyy'}}</td>
                     <td>
                       <span class="badge badge-success">{{lista.tipo_ingres || lista.tipo_emision}}</span>
                     </td>
@@ -160,11 +167,23 @@
                           title="Borrar">
                           <i class="fa-solid fa-trash"></i>
                         </button>
+                      
                       </div>
                     </td>
                   </tr>
                 </tbody>
               </table>
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  Mostrando {{getFacturasStartIndex()}}–{{getFacturasEndIndex()}} de {{getFacturas().length}}
+                </div>
+                <div>
+                  <button class="btn btn-sm btn-outline-secondary mr-2" (click)="firstFacturasPage()" [disabled]="currentPageFacturas === 1">Primero</button>
+                  <button class="btn btn-sm btn-outline-secondary mr-2" (click)="prevFacturasPage()" [disabled]="currentPageFacturas === 1">Anterior</button>
+                  <button class="btn btn-sm btn-outline-secondary mr-2" (click)="nextFacturasPage()" [disabled]="currentPageFacturas === getFacturasTotalPages()">Siguiente</button>
+                  <button class="btn btn-sm btn-outline-secondary mr-2"(click)="lastFacturasPage()" [disabled]="currentPageFacturas === getFacturasTotalPages()">Último</button>
+                </div>
+              </div>
             </div>
             <ng-template #noFacturas>
               <div class="alert alert-info text-center" *ngIf="!searchTerm">
@@ -203,9 +222,9 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let lista of getRecibos(); let i=index">
+                  <tr *ngFor="let lista of getRecibosPage(); let i=index">
                     <td>{{lista.num_recibo}} </td>
-                    <td>{{lista.num_factura}} </td>
+                    <!-- <td>{{lista.num_factura}} </td> -->
                     <td>{{lista.lugar}}</td>
                     <td>{{lista.fecha | date:'dd-MM-yyyy':'-0400'}}</td>
                     <td>
@@ -226,11 +245,27 @@
                           title="Borrar">
                           <i class="fa-solid fa-trash"></i>
                         </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" style="margin: 2px;"
+                        (click)="emitirRecibo(lista.id_ingresos)" data-placement="bottom" data-toggle="tooltip"
+                        title="Emision de Recibos">
+                        <i class="fa-solid fa-file-invoice"></i>
+                      </button>
                       </div>
                     </td>
                   </tr>
                 </tbody>
               </table>
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  Mostrando {{getRecibosStartIndex()}}–{{getRecibosEndIndex()}} de {{getRecibos().length}}
+                </div>
+                <div>
+                  <button class="btn btn-sm btn-outline-secondary mr-2" (click)="firstRecibosPage()" [disabled]="currentPageRecibos === 1">Primero</button>
+                  <button class="btn btn-sm btn-outline-secondary mr-2" (click)="prevRecibosPage()" [disabled]="currentPageRecibos === 1">Anterior</button>
+                  <button class="btn btn-sm btn-outline-secondary mr-2" (click)="nextRecibosPage()" [disabled]="currentPageRecibos === getRecibosTotalPages()">Siguiente</button>
+                  <button class="btn btn-sm btn-outline-secondary mr-2" (click)="lastRecibosPage()" [disabled]="currentPageRecibos === getRecibosTotalPages()">Último</button>
+                </div>
+              </div>
             </div>
             <ng-template #noRecibos>
               <div class="alert alert-info text-center" *ngIf="!searchTerm">
@@ -269,9 +304,10 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let lista of getDocumentos(); let i=index">
-                    <td>{{lista.num_recibo}} </td>
-                    <td>{{lista.num_factura}} </td>
+                  <tr *ngFor="let lista of getDocumentosPage(); let i=index">
+                    <td>{{lista.num_depo}}</td>
+                    <!-- <td>{{lista.num_recibo}} </td>
+                    <td>{{lista.num_factura}} </td> -->
                     <td>{{lista.lugar}}</td>
                     <td>{{lista.fecha | date:'dd-MM-yyyy':'-0400'}}</td>
                     <td>
@@ -297,6 +333,17 @@
                   </tr>
                 </tbody>
               </table>
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  Mostrando {{getDocumentosStartIndex()}}–{{getDocumentosEndIndex()}} de {{getDocumentos().length}}
+                </div>
+                <div>
+                  <button class="btn btn-sm btn-outline-secondary mr-2" (click)="firstDocumentosPage()" [disabled]="currentPageDocumentos === 1">Primero</button>
+                  <button class="btn btn-sm btn-outline-secondary mr-2" (click)="prevDocumentosPage()" [disabled]="currentPageDocumentos === 1">Anterior</button>
+                  <button class="btn btn-sm btn-outline-secondary mr-2" (click)="nextDocumentosPage()" [disabled]="currentPageDocumentos === getDocumentosTotalPages()">Siguiente</button>
+                  <button class="btn btn-sm btn-outline-secondary mr-2" (click)="lastDocumentosPage()" [disabled]="currentPageDocumentos === getDocumentosTotalPages()">Último</button>
+                </div>
+              </div>
             </div>
             <ng-template #noDocumentos>
               <div class="alert alert-info text-center" *ngIf="!searchTerm">

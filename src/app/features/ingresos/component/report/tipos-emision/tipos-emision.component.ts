@@ -127,19 +127,19 @@ generarReporte() {
       
       let reportObservable: Observable<Blob>;
       
-      if (this.nuevoIngreso.tipo_emision) {
-        
-        reportObservable = this.reporteService.getReporteResumenEmision(
-          this.busqueda.fechaInicio, 
-          this.busqueda.fechaFin, 
-          this.nuevoIngreso.tipo_emision
-        );
-      } else {
-        
+      if (this.nuevoIngreso.lugar) {
         reportObservable = this.reporteService.getReporteResumenlugarEmision(
           this.busqueda.fechaInicio,
           this.busqueda.fechaFin,
           this.nuevoIngreso.lugar,
+          this.nuevoIngreso.tipo_emision
+    
+        );
+      } else {
+        
+        reportObservable = this.reporteService.getReporteResumenEmision(
+          this.busqueda.fechaInicio, 
+          this.busqueda.fechaFin, 
           this.nuevoIngreso.tipo_emision
         );
       }

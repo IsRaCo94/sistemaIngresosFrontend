@@ -23,10 +23,10 @@ export class RegIngresosComponent implements OnInit {
   isLoadingUpdate = false;
 
   titulosColumnas = [
-    'NRO. RECIBO',
-    'NRO. FACTURA',
+    'NRO.',
+    //'NRO. FACTURA',
     'LUGAR',
-    'FECHA',
+    'FECHA DE REGISTRO',
     'T. DE INGRESO',
     'PROVEEDOR',
     'DETALLE',
@@ -56,6 +56,12 @@ export class RegIngresosComponent implements OnInit {
   searchTerm: string = '';
   searchFields = ['num_recibo', 'num_factura', 'lugar', 'proveedor', 'detalle'];
 
+  // Pagination (5 per page)
+  pageSize: number = 5;
+  currentPageFacturas: number = 1;
+  currentPageRecibos: number = 1;
+  currentPageDocumentos: number = 1;
+
 
   constructor(
     private router: Router,
@@ -63,7 +69,7 @@ export class RegIngresosComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    const todayString = new Date().toISOString().split('T')[0];
+    //const todayString = new Date().toISOString().split('T')[0];
     //const disabledDate = localStorage.getItem('disableNuevoRegistroForToday');
    // this.disableNuevoRegistroForToday = disabledDate === todayString;
     this.dtOptions = {
@@ -101,10 +107,10 @@ export class RegIngresosComponent implements OnInit {
         width: "190px",
         targets: 7
       },
-      {
-        width: "120px",
-        targets: 8
-      },
+      // {
+      //   width: "120px",
+      //   targets: 8
+      // },
       // {
       //   width: "100px",
       //   targets: 9
@@ -149,20 +155,20 @@ export class RegIngresosComponent implements OnInit {
   // generateDailyReport() {
   //   const today = new Date();
   //   const todayString = today.toISOString().split('T')[0]; // yyyy-mm-dd
-
+  //
   //   const ingresosHoy = this.ingreso.filter(item => {
   //     const fechaIngreso = new Date(item.fecha);
   //     const fechaString = fechaIngreso.toISOString().split('T')[0];
   //     return fechaString === todayString && item.estado === 'CONSOLIDADO' && item.cerrado === 'SI';
   //   });
-
+  //
   //   if (ingresosHoy.length === 0) {
   //     Swal.fire('Reporte no generado', 'No hay registros consolidados y cerrados para el día de hoy.', 'info');
   //     return;
   //   }
-
+  //
   //   this.ingresosServive.getReporteDiario(todayString).subscribe({
-
+  //
   //     next: (blob) => {
   //       const url = window.URL.createObjectURL(blob);
   //       const a = document.createElement('a');
@@ -170,9 +176,9 @@ export class RegIngresosComponent implements OnInit {
   //       a.download = `reporte_ingresosDiarios_${todayString}.pdf`;
   //       a.click();
   //       window.URL.revokeObjectURL(url);
-
+  //
   //       Swal.fire('Reporte generado', `Se generó el reporte con ${ingresosHoy.length} registros consolidados y cerrados.`, 'success');
-
+  //
   //       this.disableNuevoRegistroForToday = true;
   //       localStorage.setItem('disableNuevoRegistroForToday', todayString);
   //     },
@@ -184,6 +190,8 @@ export class RegIngresosComponent implements OnInit {
   // }
   disableNuevoRegistroForToday: boolean = false;
   // Add this property to the component class:
+  // reg-ingresos.component.ts
+
   editarRegistro(ingresos: ingresos) {
 
     this.router.navigateByUrl(`/ingresos/reg-ingresos/edit/${ingresos}`);
@@ -219,6 +227,9 @@ export class RegIngresosComponent implements OnInit {
   onDocumentTypeChange(documentType: string) {
     this.selectedDocumentType = documentType;
     this.filterByDocumentType();
+    this.currentPageFacturas = 1;
+    this.currentPageRecibos = 1;
+    this.currentPageDocumentos = 1;
   }
 
   // Get count of documents by type
@@ -236,11 +247,12 @@ export class RegIngresosComponent implements OnInit {
     let facturas = this.ingreso.filter(item => 
       item.baja !== true && (item.tipo_ingres === 'FACTURA' || item.tipo_emision === 'FACTURA')
     );
-    
+
     if (this.searchTerm.trim()) {
       facturas = this.applySearch(facturas);
     }
- 
+    facturas.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+
     return facturas;
   }
 
@@ -252,6 +264,7 @@ export class RegIngresosComponent implements OnInit {
     if (this.searchTerm.trim()) {
       recibos = this.applySearch(recibos);
     }
+    recibos.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
     return recibos;
   }
 
@@ -263,7 +276,7 @@ export class RegIngresosComponent implements OnInit {
     if (this.searchTerm.trim()) {
       documentos = this.applySearch(documentos);
     }
-    
+    documentos.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
     return documentos;
   }
 
@@ -285,12 +298,18 @@ export class RegIngresosComponent implements OnInit {
   // Clear search
   clearSearch(): void {
     this.searchTerm = '';
+    this.currentPageFacturas = 1;
+    this.currentPageRecibos = 1;
+    this.currentPageDocumentos = 1;
   }
 
   // Handle search input change
   onSearchChange(): void {
     // The search is applied automatically through the getter methods
     // This method can be used for additional logic if needed
+    this.currentPageFacturas = 1;
+    this.currentPageRecibos = 1;
+    this.currentPageDocumentos = 1;
   }
 
   // Get unique types for debug
@@ -313,6 +332,47 @@ export class RegIngresosComponent implements OnInit {
   getActiveRecordsCount(): number {
     return this.ingreso.filter(item => item.baja !== true).length;
   }
+
+  // Pagination helpers
+  private paginate(items: any[], page: number): any[] {
+    const start = (page - 1) * this.pageSize;
+    return items.slice(start, start + this.pageSize);
+  }
+
+  private getTotalPages(totalItems: number): number {
+    return Math.max(1, Math.ceil(totalItems / this.pageSize));
+  }
+
+  getFacturasPage(): any[] { return this.paginate(this.getFacturas(), this.currentPageFacturas); }
+  getFacturasTotalPages(): number { return this.getTotalPages(this.getFacturas().length); }
+  getFacturasStartIndex(): number { const total = this.getFacturas().length; return total === 0 ? 0 : (this.currentPageFacturas - 1) * this.pageSize + 1; }
+  getFacturasEndIndex(): number { return Math.min(this.currentPageFacturas * this.pageSize, this.getFacturas().length); }
+  nextFacturasPage(): void { if (this.currentPageFacturas < this.getFacturasTotalPages()) { this.currentPageFacturas++; } }
+  prevFacturasPage(): void { if (this.currentPageFacturas > 1) { this.currentPageFacturas--; } }
+  firstFacturasPage(): void { this.currentPageFacturas = 1; }
+  lastFacturasPage(): void { this.currentPageFacturas = this.getFacturasTotalPages(); }
+
+
+
+
+  getRecibosPage(): any[] { return this.paginate(this.getRecibos(), this.currentPageRecibos); }
+  getRecibosTotalPages(): number { return this.getTotalPages(this.getRecibos().length); }
+  getRecibosStartIndex(): number { const total = this.getRecibos().length; return total === 0 ? 0 : (this.currentPageRecibos - 1) * this.pageSize + 1; }
+  getRecibosEndIndex(): number { return Math.min(this.currentPageRecibos * this.pageSize, this.getRecibos().length); }
+  nextRecibosPage(): void { if (this.currentPageRecibos < this.getRecibosTotalPages()) { this.currentPageRecibos++; } }
+  prevRecibosPage(): void { if (this.currentPageRecibos > 1) { this.currentPageRecibos--; } }
+  firstRecibosPage(): void { this.currentPageRecibos = 1; }
+  lastRecibosPage(): void { this.currentPageRecibos = this.getRecibosTotalPages(); }
+  
+
+  getDocumentosPage(): any[] { return this.paginate(this.getDocumentos(), this.currentPageDocumentos); }
+  getDocumentosTotalPages(): number { return this.getTotalPages(this.getDocumentos().length); }
+  getDocumentosStartIndex(): number { const total = this.getDocumentos().length; return total === 0 ? 0 : (this.currentPageDocumentos - 1) * this.pageSize + 1; }
+  getDocumentosEndIndex(): number { return Math.min(this.currentPageDocumentos * this.pageSize, this.getDocumentos().length); }
+  nextDocumentosPage(): void { if (this.currentPageDocumentos < this.getDocumentosTotalPages()) { this.currentPageDocumentos++; } }
+  prevDocumentosPage(): void { if (this.currentPageDocumentos > 1) { this.currentPageDocumentos--; } }
+  firstDocumentosPage(): void { this.currentPageDocumentos = 1; }
+  lastDocumentosPage(): void { this.currentPageDocumentos = this.getDocumentosTotalPages(); }
 
   
   eliminarRegistro(id_ingresos: number): void {
@@ -351,4 +411,45 @@ export class RegIngresosComponent implements OnInit {
       }
     });
   }
+  
+  emitirRecibo(id_ingresos: number) {
+    Swal.fire({
+      title: '¿Qué desea hacer?',
+      showDenyButton: true,
+      showCancelButton: true,
+      confirmButtonText: 'Descargar',
+      denyButtonText: 'Vista previa',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed || result.isDenied) {
+        this.loading = true;
+        this.ingresosServive.getReporteRecibo(id_ingresos).subscribe({
+          next: (response) => {
+            this.loading = false;
+            const blob = new Blob([response], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
+  
+            if (result.isConfirmed) {
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `Recibo_${id_ingresos}.pdf`;
+              a.click();
+              window.URL.revokeObjectURL(url);
+            } else if (result.isDenied) {
+              window.open(url, '_blank');
+            }
+          },
+          error: (err) => {
+            this.loading = false;
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'No se pudo generar el recibo. Intente nuevamente.'
+            });
+          }
+        });
+      }
+    });
+  }
+  
 }

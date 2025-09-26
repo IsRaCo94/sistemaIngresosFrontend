@@ -10,6 +10,9 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { TipoIngreso } from '../../../../models/TipoIngreso';
 import { RubrosDetalle } from '../../../../models/rubrosDetalle';
 import { DetalleRubrosService } from '../../../../service/detalle-rubros.service';
+import { persona } from '../../../../models/persona';
+import * as XLSX from 'xlsx';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-edit',
@@ -26,6 +29,8 @@ export class EditComponent implements OnInit {
   actualizarIngreso = new ingresos();
   tipoIngresos: TipoIngreso[] = [];
   tipoRubros: RubrosDetalle[] = [];
+  excelFileToImport: File | null = null;
+  excelPreview: any[] = [];
 showAmortizacion: boolean = false;
   showDemasia: boolean = false;
   constructor(
@@ -156,31 +161,63 @@ showAmortizacion: boolean = false;
   ngAfterContentChecked(): void {
     this.changeDetector.detectChanges();
   }
+    persona = new persona;
+  personas: persona[] = [];
   proveedor = new empresa;
   proveedores: empresa[] = [];
   selectedItem: any;
+  
 
   titleCard = '';
+
 
   setSelectedItem(item: any) {
     this.selectedItem = item;
   }
   setModalProveedor() {
     this.selectedItem = 1;
+    console.log(this.selectedItem);
+    
   }
 
+  setSelectedItem2(item: any) {
+    this.selectedItem = item;
+  }
+  setModalPersona() {
+    this.selectedItem = 2;
+    console.log(this.selectedItem);
+    
+  }
+  receiveMessageImportDocumento($event: ingresos) {
+   
+  }
+  //   receiveMessageProveedor($event: any) {
+
+  //     this.nuevoIngreso.proveedor = $event.nombre
+  //     this.nuevoIngreso.id_empresa_id = $event.id_empresa
+  //     this.nuevoIngreso.cod_prove = $event.id_empresa
+  //     this.nuevoIngreso.nit = $event.nit;
+  //     if (this.nuevoIngreso.op_tipoemision !== 'factura') {
+  //       this.nuevoIngreso.nit = 0;
+  //     }
+  // console.log('recibe:', this.nuevoIngreso.cod_prove);
+
+  //   }
   receiveMessageProveedor($event: any) {
 
-    this.actualizarIngreso.proveedor = $event.EMP_NOM
-    //this.actualizarIngreso.id_empresa_id = $event.id_empresa
-    this.actualizarIngreso.cod_prove = $event.EMP_COD
+    this.actualizarIngreso.proveedor = $event.EMP_NOM;
+    //this.nuevoIngreso.id_empresa_id = $event.EMP_COD;
+    this.actualizarIngreso.cod_prove = $event.EMP_COD;
     this.actualizarIngreso.nit = $event.EMP_NIT;
     if (this.actualizarIngreso.op_tipoemision !== 'factura') {
       this.actualizarIngreso.nit = 0;
     }
-    console.log('recibe:', this.actualizarIngreso.nit);
+    console.log('recibe:', this.actualizarIngreso.cod_prove);
 
-  
+  }
+  receiveMessagePersona($event: any) {
+    this.actualizarIngreso.proveedor = $event.nombre;
+    
   }
   getTipoIngreso() {
     this.tipoingresoService.getTipoIngreso()
@@ -207,12 +244,12 @@ showAmortizacion: boolean = false;
       .subscribe(
         (response: any) => {
           if (response.length > 0) {
-            this.tipoRubros = response;
+            // Filter out items where baja is true
+            this.tipoRubros = response.filter((item: any) => !item.baja);
           }
         },
         error => console.log(<any>error));
   }
-
 
   getTipoRubroChange(id_rubro: any) {
     const tipos = this.tipoRubros.find(x => x.id_detalle_rubro == id_rubro);
@@ -229,7 +266,7 @@ showAmortizacion: boolean = false;
       this.actualizarIngreso.nombre = '';
 
     }
-    console.log('recibo', this.actualizarIngreso.detalle);
+    console.log('recibo', this.actualizarIngreso.num_rubro);
 
   }
   getNextNumDeposito() {
@@ -267,9 +304,141 @@ showAmortizacion: boolean = false;
     const monto = Number(this.actualizarIngreso.monto) || 0;
     this.actualizarIngreso.importe_total = parseFloat((monto).toFixed(2));
   }
-
+  onPdfSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (file) {
+      if (file.type !== 'application/pdf') {
+        Swal.fire({
+          icon: 'error',
+          title: 'Archivo inválido',
+          text: 'Por favor, seleccione un archivo PDF válido.',
+        });
+        return;
+      }
+      const formData = new FormData();
+      formData.append('file', file);
+      this.ingresoService.extractPdfData(formData).subscribe((data: any) => {
+        console.log('Datos recibidos del PDF:', data);
+        if (this.actualizarIngreso.tipo_emision === 'FACTURA') {
+          this.actualizarIngreso.proveedor = data.proveedor;
+          // Remove prefix if present
+          const prefix = 'PRECIO Unidad (Servicios) ';
+          let detalle = data.detalle || '';
+          if (detalle.startsWith(prefix)) {
+            detalle = detalle.substring(prefix.length);
+          }
+          this.actualizarIngreso.detalle = detalle; // Assign cleaned string here
+          this.actualizarIngreso.monto = data.monto;
+          this.actualizarIngreso.num_factura = data.num_factura;
+          this.actualizarIngreso.nit = data.nit;
+          const fechaISO = data.fecha; // "2025-08-29T00:00:00.000Z"
+          const fechaLocal = new Date(fechaISO);
+          const fechaCorregida = new Date(fechaLocal.getTime() + fechaLocal.getTimezoneOffset() * 60000);
+          this.actualizarIngreso.fecha = fechaCorregida;
+          this.calculateCostoTotal2();
+          Swal.fire({
+            icon: 'success',
+            title: 'Importación exitosa',
+            text: 'El PDF fue importado y los datos se completaron correctamente.',
+            confirmButtonText: 'Aceptar'
+          });
+        }
+      });
+    }  
+  }
+  onFileChange(evt: any) {
+    const file = evt.target.files[0];
+    if (!file) {
+      Swal.fire('Error', 'Debe seleccionar un archivo.', 'error');
+      return;
+    }
+  
+    // Validar extensión de archivo
+    const validExtensions = ['.xlsx', '.xls'];
+    const fileName = file.name.toLowerCase();
+    if (!validExtensions.some(ext => fileName.endsWith(ext))) {
+      Swal.fire('Error', 'Solo se permiten archivos de Excel (.xlsx, .xls).', 'error');
+      return;
+    }
+  
+    this.excelFileToImport = file;
+  
+    const reader: FileReader = new FileReader();
+    reader.onload = (e: any) => {
+      const bstr: string = e.target.result;
+      const wb: XLSX.WorkBook = XLSX.read(bstr, { type: 'binary' });
+      const wsname: string = wb.SheetNames[0];
+      const ws: XLSX.WorkSheet = wb.Sheets[wsname];
+      const data: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+  
+      // Validar encabezados
+      const headers = data[0] || [];
+      const expectedHeaders = ['Nro. DEPOSITO', 'DESCRIPCIÓN', 'IMPORTE TOTAL', 'FECHA'];
+      const normalize = (str: string) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toUpperCase();
+      const headersValid = expectedHeaders.every((h, i) => normalize(headers[i] || '') === normalize(h));
+  
+      if (!headersValid) {
+        Swal.fire('Error', 'El archivo debe tener las columnas: ' + expectedHeaders.join(', '), 'error');
+        return;
+      }
+  
+      // Validar que haya al menos un dato
+      if (data.length <= 1) {
+        Swal.fire('Error', 'El archivo no contiene datos para importar.', 'error');
+        return;
+      }
+  
+      // Mapear datos, asegurando que cada fila sea un array
+      this.excelPreview = data.slice(1).map((row: any[]) => {
+        // Convert importe_total to number with 2 decimals
+        let importe = row[2];
+        if (typeof importe === 'string') {
+          importe = importe.replace(',', '.'); // Replace comma decimal separator if any
+        }
+        const importe_total = parseFloat(importe) || 0;
+  
+        // Instead of using Excel date, use this.nuevoIngreso.fecha formatted as dd/mm/yyyy
+        const fechaStr = this.actualizarIngreso.fecha ? 
+          new Date(this.actualizarIngreso.fecha).toLocaleDateString('es-ES') : '';
+  
+        // Find the rubro object matching the selected id_tipo_rubro
+        const rubro = this.tipoRubros.find(r => r.id_detalle_rubro === this.actualizarIngreso.id_tipo_rubro);
+  
+        return {
+          num_depo: row[0] ?? '',
+          proveedor: row[1] ?? '',
+          importe_total: importe_total.toFixed(2),
+          fecha: fechaStr,  // Use fixed date here
+          lugar: this.actualizarIngreso.lugar,
+          id_tipo_ingr_id: this.actualizarIngreso.id_tipo_ingr_id,
+          tipo_ingres: this.actualizarIngreso.tipo_ingres,
+          id_tipo_rubro: this.actualizarIngreso.id_tipo_rubro,
+          nombre: rubro ? rubro.nombre : '',
+          num_rubro: rubro ? rubro.num_rubro : '',
+          servicio: rubro ? rubro.servicio : '',
+          detalle: this.actualizarIngreso.detalle || ''
+        };
+      });
+  
+      // Validar que todos los campos requeridos estén presentes en cada fila
+      const datosValidos = this.excelPreview.every(ingre =>
+        ingre.num_depo && ingre.proveedor && ingre.importe_total && ingre.fecha
+      );
+      if (!datosValidos) {
+        Swal.fire('Error', 'Todos los campos son obligatorios en cada fila.', 'error');
+        return;
+      }
+  
+      // Mostrar el modal de importación
+      this.selectedItem = 3;
+    };
+    reader.readAsBinaryString(file);
+  }
 
   updateDetalle() {
+    if (this.actualizarIngreso.tipo_emision !== 'RECIBO' && this.actualizarIngreso.tipo_emision !== 'DOCUMENTO') {
+      return;
+    }
     let detalleParts = [];
 
     if (this.actualizarIngreso.servicio === 'VENTA DE CARNETS DE ASEGURADO') {
@@ -358,9 +527,6 @@ showAmortizacion: boolean = false;
     this.actualizarIngreso.detalle = '';
     this.actualizarIngreso.servicio = '';
     
-
-
-
     if (this.actualizarIngreso.op_tipoemision !== 'factura') {
       this.actualizarIngreso.monto = 0;
       this.actualizarIngreso.detalle = '';
@@ -377,7 +543,7 @@ showAmortizacion: boolean = false;
       this.actualizarIngreso.tipo_emision = 'RECIBO';
     }
     else if (this.actualizarIngreso.op_tipoemision === 'documento') {
-      this.actualizarIngreso.num_depo = 0;
+      this.actualizarIngreso.num_depo;
       this.actualizarIngreso.tipo_emision = 'DOCUMENTO';
       this.actualizarIngreso.cerrado = '';
       this.actualizarIngreso.estado = '';
@@ -389,76 +555,69 @@ showAmortizacion: boolean = false;
   actualizarRegistro() {
 
 
-    // if (this.actualizarIngreso.cerrado === 'SI') {
-    //   Swal.fire({
-    //     title: 'Registro con estado PENDIENTE',
-    //     text: '¿Está seguro de Consolidar el Registro?',
-    //     icon: 'warning',
-    //     showCancelButton: true,
-    //     confirmButtonText: 'Sí, consolidar',
-    //     cancelButtonText: 'Cancelar'
-    //   }).then((result) => {
-    //     if (result.isConfirmed) {
-    //       this.actualizarIngreso.estado = 'CONSOLIDADO';
-    //       // Proceed with the update after confirmation
-    //       this.proceedUpdate();
-    //     }
-    //   });
-    //   return;
-    // } 
-    // else {
-    //   if (this.actualizarIngreso.cerrado === 'NO') {
-    //     Swal.fire('Registro con estado Consolidado', 'Un registro Consolidado no puede volver a Pendiente.', "info");
-    //     return;
+    switch (this.actualizarIngreso.op_tipoemision) {
+      case 'factura':
+        this.actualizarIngreso.num_recibo = 0;
+        // this.getNextNumDeposito();
+        this.actualizarIngreso.tipo_emision = 'FACTURA';
+        break;
+      case 'documento':
+        this.actualizarIngreso.num_recibo = 0;
+        // this.getNextNumDeposito();
+        this.actualizarIngreso.tipo_emision = 'DOCUMENTO';
+        break;
+      case 'recibo':
+      default:
+        this.actualizarIngreso.num_factura = 0;
+        // this.getNextNumFactura();
+        this.actualizarIngreso.tipo_emision = 'RECIBO';
+        break;
+    }
 
-    //   }
-    // }
-    //this.proceedUpdate();
-  //}
-  // If cerrado !== 'NO', proceed normally
-  // proceedUpdate() {
+    //Solo validar campos obligatorios si es una recibo
+    switch (this.actualizarIngreso.tipo_emision) {
+      case 'FACTURA':
+        const camposObligatorios = [
+          this.actualizarIngreso.num_factura,
+          this.actualizarIngreso.lugar,
+          this.actualizarIngreso.proveedor,
+          this.actualizarIngreso.nit,
+          this.actualizarIngreso.cerrado,
+          this.actualizarIngreso.estado,
+          this.actualizarIngreso.id_tipo_ingr_id,
+          this.actualizarIngreso.id_tipo_rubro,
+          this.actualizarIngreso.monto,
+          this.actualizarIngreso.importe_total
+        ];
 
-  //   switch (this.actualizarIngreso.op_tipoemision) {
-  //     case 'factura':
-  //       this.actualizarIngreso.num_recibo = 0;
-  //       // this.getNextNumDeposito();
-  //       this.actualizarIngreso.tipo_emision = 'FACTURA';
-  //       break;
-  //     case 'documento':
-  //       this.actualizarIngreso.num_recibo = 0;
-  //       // this.getNextNumDeposito();
-  //       this.actualizarIngreso.tipo_emision = 'DOCUMENTO';
-  //       break;
-  //     case 'recibo':
-  //     default:
-  //       this.actualizarIngreso.num_factura = 0;
-  //       // this.getNextNumFactura();
-  //       this.actualizarIngreso.tipo_emision = 'RECIBO';
-  //       break;
-  //   }
+        if (camposObligatorios.some(campo => !campo)) {
+          Swal.fire('Campos obligatorios', 'Para facturas, complete todos los campos requeridos.', 'warning');
+          return;
+        }
+        break;
 
+      case 'RECIBO':
+        const camposObligatorios2 = [
+          this.actualizarIngreso.num_recibo,
+          this.actualizarIngreso.lugar,
+          this.actualizarIngreso.proveedor,
+          // this.nuevoIngreso.nit,
+          this.actualizarIngreso.cerrado,
+          this.actualizarIngreso.estado,
+          this.actualizarIngreso.id_tipo_ingr_id,
+          this.actualizarIngreso.id_tipo_rubro,
+          this.actualizarIngreso.monto,
+          this.actualizarIngreso.importe_total
+        ];
 
-    this.submitted = true;
-
-    // const camposObligatorios = [
-    //   this.actualizarIngreso.num_depo,
-    //   this.actualizarIngreso.lugar,
-    //   this.actualizarIngreso.fecha,
-    //   this.actualizarIngreso.monto,
-    //   this.actualizarIngreso.cod_prove,
-    //   this.actualizarIngreso.proveedor,
-    //   this.actualizarIngreso.detalle,
-    //   this.actualizarIngreso.estado,
-    //   this.actualizarIngreso.tipo_ingres,
-    //   this.actualizarIngreso.cerrado,
-    //   this.actualizarIngreso.id_empresa_id,
-    //   this.actualizarIngreso.id_tipo_ingr_id
-    // ];
-
-    // if (camposObligatorios.some(campo => !campo)) {
-    //   Swal.fire('Campos obligatorios', 'Por favor, complete todos los campos requeridos.', 'warning');
-    //   return;
-    // }
+        if (camposObligatorios2.some(campo2 => !campo2)) {
+          Swal.fire('Campos obligatorios', 'Para recibos, complete todos los campos requeridos.', 'warning');
+          return;
+        }
+        break;
+    }
+    this.isLoading = true;
+    this.button = 'Procesando..';
 
     this.isLoading = true;
     this.button = 'Procesando..';
@@ -485,6 +644,9 @@ showAmortizacion: boolean = false;
           }
         }
       });
+
+      console.log(this.actualizarIngreso);
+      
   }
 
 }

@@ -1,7 +1,7 @@
 export class ingresos {
     id_ingresos!: number
     num_recibo!: number
-    num_depo!: number
+    num_depo!: string
     lugar!: string
     fecha!: Date
     monto!: number

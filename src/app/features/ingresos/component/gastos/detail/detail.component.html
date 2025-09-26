@@ -236,9 +236,9 @@
                                         <td>{{lista.area_organizacional}}</td>
                                         <td>{{lista.descripcionEspecificaRequerimientos}}</td>
                                         <td>{{lista.operaciones}}</td>
-                                        <td>{{lista.costoTotal| number}}</td>
-                                        <td>{{lista.saldo| number}}</td>
-                                        <td>{{lista.saldofinal| number}}</td>
+                                        <td>{{lista.costoTotal| number:'1.2-2':'en-US'}}</td>
+                                        <td>{{lista.saldo| number:'1.2-2':'en-US'}}</td>
+                                        <td>{{lista.saldofinal| number:'1.2-2':'en-US'}}</td>
                                         <td>
                                             <div *ngIf="lista.baja !== true" class="d-flex align-items-center">
                                                 <button type="button" class="btn btn-outline-warning"
@@ -272,7 +272,7 @@
                         </div>
                         <div class="col-sm-4 col-6">
                             <div class="description-block border-right">
-                                <h5 class="description-header">Bs. {{total.importe | number}}</h5>
+                                <h5 class="description-header">Bs. {{total.importe | number:'1.2-2':'en-US'}}</h5>
                                 <span class="description-text">TOTAL IMPORTE</span>
                             </div>
                             <!-- /.description-block -->

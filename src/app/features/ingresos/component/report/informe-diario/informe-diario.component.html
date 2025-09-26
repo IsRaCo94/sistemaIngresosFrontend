@@ -26,30 +26,38 @@
             <div class="card-header">
             </div>
             <div class="card-body">
-                <div class="w3-row ">
-                      <!-- <div class="col-md-2">
+                <div class="row mb-4 ">
+                    <div class="col-md-2">
                         <label>Regional:</label>
                         <p-select [(ngModel)]="nuevoIngreso.lugar" [ngModelOptions]="{standalone: true}" [options]="[
-                          {label: 'REGIONAL LA PAZ', value: 'REGIONAL LA PAZ'},
+                           {label: 'TODOS'},
+                           {label: 'REGIONAL LA PAZ', value: 'REGIONAL LA PAZ'},
                           {label: 'REGIONAL COCHABAMBA', value: 'REGIONAL COCHABAMBA'},
-                          {label: 'REGIONAL SANTA CRUZ', value: 'REGIONAL SANTA CRUZ'}
+                          {label: 'REGIONAL SANTA CRUZ', value: 'REGIONAL SANTA CRUZ'},
+                          {label: 'REGIONAL ORURO', value: 'REGIONAL ORURO'},
+                          {label: 'REGIONAL POTOSI', value: 'REGIONAL POTOSI'},
+                          {label: 'REGIONAL CHUQUISACA', value: 'REGIONAL CHUQUISACA'},
+                          {label: 'REGIONAL TARIJA', value: 'REGIONAL TARIJA'},
+                          {label: 'REGIONAL PANDO', value: 'REGIONAL PANDO'},
+                          {label: 'REGIONAL BENI', value: 'REGIONAL BENI'},
                             ]" optionLabel="label" optionValue="value" placeholder="Regional" class="w-full md:w-56">
                         </p-select>
-                    </div> -->
+                    </div>
                     <div class="w3-third w3-container">
                         <div class="form-group">
-                            <label for="felab"><b>Fecha Informe Diario:</b></label>
+                            <label for="felab"><b>Fecha Inicio:</b></label>
                             <input type="date" class="form-control" name="felab" id="felab"
                                 [(ngModel)]="busqueda.fechaInicio">
                         </div>
-                          <div *ngIf="submitted && !busqueda.fechaInicio" class="text-danger">
+                             <div *ngIf="submitted && !busqueda.fechaInicio" class="text-danger">
                             Fecha es obligatoria.
                         </div>
                     </div>
-
                 </div>
-                <div class="w3-row w3-container">
-                    <a href="javascript:void(0)" (click)="generarReporte()" class="btn btn-primary">Generar Reporte</a>
+                <div class="w3-row w3-container" style="display: flex; justify-content: flex-end">
+                    <!-- <a href="javascript:void(0)" (click)="descargarReporte()" class="btn btn-primary mr-2">Descargar Reporte</a> -->
+                    <a href="javascript:void(0)" (click)="generarReporte()" class="btn btn-info mr-2">Generar Reporte</a>
+                    <a href="javascript:void(0)" (click)="exportExcel()" class="btn btn-success">Exportar a Excel</a>
                 </div>
             </div>
         </div>

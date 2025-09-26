@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, map, Observable, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import Swal from 'sweetalert2';
@@ -53,9 +53,47 @@ export class IngresosService {
   getLastNumFactura(): Observable<number> {
     return this.http.get<number>(`${this.apiUrl}/ingresos/maximonumFact`);
   }
+getReporteDiariolugar(fecha: string, lugar: string): Observable<Blob> {
+
+  const url = `${this.apiUrl}/ingresos/reporte-informe-diario/${fecha}/${lugar}`;
+  return this.http.get(url, { responseType: 'blob' });
+}
 getReporteDiario(fecha: string): Observable<Blob> {
 
   const url = `${this.apiUrl}/ingresos/reporte-informe-diario/${fecha}`;
   return this.http.get(url, { responseType: 'blob' });
+}
+getReporteDiariolugarExcel(fechaInicio: string, lugar: string): Observable<Blob> {
+  return this.http.get(
+    `${this.apiUrl}/ingresos/reporte-informe-diario-excel/${fechaInicio}/${lugar}`,
+    {
+      responseType: 'blob',
+      headers: new HttpHeaders({
+        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      })
+    }
+  );
+}
+getReporteDiarioExcel(fechaInicio: string): Observable<Blob> {
+  return this.http.get(
+    `${this.apiUrl}/ingresos/reporte-informe-diario-excel/${fechaInicio}`,
+    {
+      responseType: 'blob',
+      headers: new HttpHeaders({
+        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      })
+    }
+  );
+}
+getReporteRecibo(id_ingresos: number): Observable<Blob> {
+  const url = `${this.apiUrl}/ingresos/reporte-recibo/${id_ingresos}`;
+  return this.http.get(url, { responseType: 'blob' });
+}
+
+extractPdfData(formData: FormData): Observable<any> {
+  return this.http.post<any>(`${this.apiUrl}/ingresos/import-pdf`, formData);
+}
+importDocumentos(formData: FormData): Observable<any> {
+  return this.http.post(`${this.apiUrl}/ingresos/importar-excel`, formData);
 }
 }

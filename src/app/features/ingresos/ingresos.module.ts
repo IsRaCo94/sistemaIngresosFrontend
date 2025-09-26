@@ -16,6 +16,8 @@ import { TiposIngresosComponent } from './component/report/tipos-ingresos/tipos-
 import { InformeDiarioComponent } from './component/report/informe-diario/informe-diario.component';
 import { ResumenRubrosComponent } from './component/report/resumen-rubros/resumen-rubros.component';
 import { TiposEmisionComponent } from './component/report/tipos-emision/tipos-emision.component';
+import { PersonasModule } from './component/shared/personas/personas.module';
+import { ImportarDocumentoComponent } from './component/shared/importar-documento/importar-documento.component';
 
 
 
@@ -30,7 +32,7 @@ import { TiposEmisionComponent } from './component/report/tipos-emision/tipos-em
     TiposIngresosComponent,
     InformeDiarioComponent,
     ResumenRubrosComponent,
-    TiposEmisionComponent
+    TiposEmisionComponent,
 
 
   ],
@@ -38,7 +40,8 @@ import { TiposEmisionComponent } from './component/report/tipos-emision/tipos-em
     CommonModule,
     IngresosRoutingModule,
     AppCommonModule,
-    PrimeNgModules
+    PrimeNgModules,
+    PersonasModule
   ]
 })
 export class IngresosModule { }

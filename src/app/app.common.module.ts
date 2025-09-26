@@ -8,7 +8,8 @@ import { DataTablesModule } from 'angular-datatables';
 
 @NgModule({
     imports: [
-        CommonModule
+        CommonModule,
+        DataTablesModule
     ],
     exports: [
         FormsModule,

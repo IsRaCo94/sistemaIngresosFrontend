@@ -38,38 +38,131 @@ export class InformeDiarioComponent implements OnInit {
   ngOnInit(): void {
     this.setVariablesIniciales();
   }
- generarReporte() {
-      this.submitted = true;
+  generarReporte() {
     const camposObligatorios = [
-        this.busqueda.fechaInicio,
-      ];
-        if (camposObligatorios.some(campo => !campo)) {
-          console.log(camposObligatorios);
-          Swal.fire('Campos obligatorios', 'Para generar el reporte, por favor, complete todos los campos requeridos.', 'warning');
-          return;
-        }
-
-      this.loading = true;
-  let reportObservable: Observable<Blob>;
-    reportObservable = this.reporteService.getReporteDiario(
       this.busqueda.fechaInicio,
+      //this.nuevoIngreso.lugar,
+     // this.nuevoIngreso.nombre
+    ];
   
+    if (camposObligatorios.some(campo => !campo)) {
+      Swal.fire('Campos obligatorios', 'Para generar el reporte, por favor, complete todos los campos requeridos.', 'warning');
+      return;
+    }
   
-  
+    Swal.fire({
+      title: 'Seleccione una opción:',
+      showDenyButton: true,
+      showCancelButton: true,
+      confirmButtonText: 'Descargar',
+      denyButtonText: 'Vista Previa',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed || result.isDenied) {
+        this.submitted = true;
+          this.loading = true;
+        
+        let reportObservable: Observable<Blob>;
+        
+        if (this.nuevoIngreso.lugar) {
+        
+          reportObservable = this.reporteService.getReporteDiariolugar(
+            this.busqueda.fechaInicio, 
+            this.nuevoIngreso.lugar
+          );
+        } else {
+          
+          reportObservable = this.reporteService.getReporteDiario(
+            this.busqueda.fechaInicio,
+           
+          );
+        }
+        reportObservable.subscribe(
+          
+          (blob: Blob) => {
+            const url = window.URL.createObjectURL(blob);
+          this.loading = false;
+            if (result.isConfirmed) {
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = this.nuevoIngreso.nombre ? 'reporte_diario_lugar.pdf' : 'reporte_diario.pdf';
+              document.body.appendChild(link);
+              link.click();
+             
+              // Cleanup
+              setTimeout(() => {
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(link);
+                this.loading = false;
+              }, 100);
+            } else if (result.isDenied) {
+              window.open(url, '_blank');
+              setTimeout(() => {
+                window.URL.revokeObjectURL(url);
+                this.loading = false;
+              }, 10000);
+            }
+          },
+          error => {
+            console.error('Error generating report:', error);
+            Swal.fire('Error', 'No se pudo generar el reporte', 'error');
+            this.loading = false;
+          }
+        );
+      }
+    });
+  }
+  exportExcel() {
+    const camposObligatorios = [
+      this.busqueda.fechaInicio,
+     // this.nuevoIngreso.lugar,
+     // this.nuevoIngreso.nombre
+    ];
+
+    if (camposObligatorios.some(campo => !campo)) {
+      Swal.fire('Campos obligatorios', 'Para generar el reporte, por favor, complete todos los campos requeridos.', 'warning');
+      return;
+    }
+
+    this.submitted = true;
+    this.loading = true;
+    let reportObservable: Observable<Blob>;
+
+    if (this.nuevoIngreso.lugar) {
+      reportObservable = this.reporteService.getReporteDiariolugarExcel(
+        this.busqueda.fechaInicio,
+        this.nuevoIngreso.lugar,
+       
+      );
+    } else {
+      reportObservable = this.reporteService.getReporteDiarioExcel(
+        this.busqueda.fechaInicio,
+      );
+    }
+
+    reportObservable.subscribe(
+      (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = this.nuevoIngreso.nombre ?
+          'reporte_diario_lugar.xlsx' :
+          'reporte_diario.xlsx';
+        document.body.appendChild(link);
+        link.click();
+
+        // Cleanup
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(link);
+          this.loading = false;
+        }, 100);
+      },
+      error => {
+        console.error('Error generating report:', error);
+        Swal.fire('Error', 'No se pudo generar el reporte', 'error');
+        this.loading = false;
+      }
     );
-  reportObservable.subscribe(blob => {
-    const url = window.URL.createObjectURL(blob);
-    window.open(url, '_blank');
-    setTimeout(() => {
-      window.URL.revokeObjectURL(url);
-    }, 10000);
-    this.loading = false;
-  }, error => {
-    console.error('Error generating report:', error);
-     this.loading = false; 
-  });
-
-  console.log(this.busqueda.fechaInicio);
-
-}
+  }
 }
