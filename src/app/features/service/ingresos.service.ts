@@ -96,4 +96,8 @@ extractPdfData(formData: FormData): Observable<any> {
 importDocumentos(formData: FormData): Observable<any> {
   return this.http.post(`${this.apiUrl}/ingresos/importar-excel`, formData);
 }
+getAportes(num_form: number): Observable<any> {
+  const url = `${this.apiUrl}/ingresos/pagos-aportes/by-com-nro/${num_form}`;
+  return this.http.get<any>(url);
+}
 }

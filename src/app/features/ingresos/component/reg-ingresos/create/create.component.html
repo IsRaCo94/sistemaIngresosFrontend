@@ -1,9 +1,9 @@
-<app-personas *ngIf="selectedItem == 2" (messageEvent)="receiveMessagePersona($event)" 
+<app-personas *ngIf="selectedItem == 2" (messageEvent)="receiveMessagePersona($event)"
   (closeModal)="setSelectedItem2(0)"></app-personas>
 <app-proveedor *ngIf="selectedItem == 1" (messageEvent)="receiveMessageProveedor($event)"
   (closeModal)="setSelectedItem(0)"></app-proveedor>
-  <app-importar-documento *ngIf="selectedItem == 3" [excelPreview]="excelPreview" [excelFileToImport]="excelFileToImport" 
-  (closeModal)="setSelectedItem(0)"(messageEvent)="receiveMessageImportDocumento($event)">
+<app-importar-documento *ngIf="selectedItem == 3" [excelPreview]="excelPreview" [excelFileToImport]="excelFileToImport"
+  (closeModal)="setSelectedItem(0)" (messageEvent)="receiveMessageImportDocumento($event)">
 </app-importar-documento>
 
 <div class="col-md-12">
@@ -19,13 +19,11 @@
       </div>
     </div>
     <!-- /.card-header -->
-    <div class="card-body"
-    [ngClass]="{
+    <div class="card-body" [ngClass]="{
       'bg-emision-recibo': nuevoIngreso.op_tipoemision === 'recibo',
       'bg-emision-factura': nuevoIngreso.op_tipoemision === 'factura',
       'bg-emision-documento': nuevoIngreso.op_tipoemision === 'documento'
-    }"
-    style="padding: 20px;">
+    }" style="padding: 20px;">
       <form>
         <div class="row mb-4">
           <div class="col-md-3">
@@ -44,11 +42,52 @@
             <div class="col-md-4">
               <label for="proveedor">Nro. Recibo:</label>
               <p-floatlabel variant="on">
-                <input pInputText id="num_recibo" [(ngModel)]="nuevoIngreso.num_recibo" [ngModelOptions]="{standalone: true}" appUpper required [disabled]="false" class="w-full"/>
+                <input pInputText id="num_recibo" [(ngModel)]="nuevoIngreso.num_recibo"
+                  [ngModelOptions]="{standalone: true}" appUpper required [disabled]="false" class="w-full" />
                 <label for="num_recibo">Nro. Recibo:<span style="color: red">*</span></label>
               </p-floatlabel>
               <div *ngIf="submitted && !nuevoIngreso.num_recibo" class="text-danger">
                 El número de recibo es obligatorio.
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label for="proveedor">Nro. de Formulario:</label>
+              <p-floatlabel variant="on">
+                <p-inputgroup>
+                  <input pInputText id="num_form" [(ngModel)]="nuevoIngreso.num_form"
+                    [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper required class="w-full"
+                    (keyup.enter)="buscarAporte(nuevoIngreso.num_form)" />
+                  <button pButton type="button" class="p-button-primary" (click)="buscarAporte(nuevoIngreso.num_form)"
+                    [disabled]="!nuevoIngreso.num_form">Buscar</button>
+                </p-inputgroup>
+                <label for="num_form">Nro. de Formulario:<span style="color: red">*</span></label>
+              </p-floatlabel>
+            </div>
+            
+            <div class="col-md-4">
+              <label for="fecha_reg">Fecha:</label>
+              <p-floatlabel variant="on">
+                <p-datepicker [(ngModel)]="nuevoIngreso.fecha" [ngModelOptions]="{standalone: true}" [showIcon]="true"
+                  inputId="fecha_reg" dateFormat="dd/mm/yy" class="w-full" />
+                <label for="fecha_reg">Fecha</label>
+              </p-floatlabel>
+              <div *ngIf="submitted && !nuevoIngreso.fecha" class="text-danger">
+                La fecha es obligatoria.
+              </div>
+            </div>
+          </div>
+          <div class="row mb-4">
+            <div class="col-md-4">
+              <label for="proveedor">Razón Social</label>
+              <p-inputgroup class="w-full">
+                <button pButton type="button" label="Buscar" class="p-button-success" (click)="setModalProveedor()"
+                  data-toggle="modal" data-target="#modalProveedor"></button>
+                <input pInputText id="proveedor" [(ngModel)]="nuevoIngreso.proveedor"
+                  [ngModelOptions]="{standalone: true}" [attr.disabled]="true" required placeholder="Razon Social"
+                  class="w-full" />
+              </p-inputgroup>
+              <div *ngIf="submitted && !nuevoIngreso.proveedor" class="text-danger">
+                El proveedor es obligatorio.
               </div>
             </div>
             <div class="col-md-4">
@@ -72,38 +111,10 @@
               </div>
             </div>
             <div class="col-md-4">
-              <label for="fecha_reg">Fecha:</label>
-              <p-floatlabel variant="on">
-                <p-datepicker [(ngModel)]="nuevoIngreso.fecha" [ngModelOptions]="{standalone: true}" [showIcon]="true" inputId="fecha_reg" dateFormat="dd/mm/yy" class="w-full"/>
-                <label for="fecha_reg">Fecha</label>
-              </p-floatlabel>
-              <div *ngIf="submitted && !nuevoIngreso.fecha" class="text-danger">
-                La fecha es obligatoria.
-              </div>
-            </div>
-          </div>
-          <div class="row mb-4">
-            <div class="col-md-4">
-              <label for="proveedor">Razón Social</label>
-              <p-inputgroup class="w-full">
-                <button pButton type="button" label="Buscar" class="p-button-success" (click)="setModalProveedor()" data-toggle="modal" data-target="#modalProveedor"></button>
-                <input pInputText id="proveedor" [(ngModel)]="nuevoIngreso.proveedor" [ngModelOptions]="{standalone: true}" [attr.disabled]="true" required placeholder="Razon Social" class="w-full"/>
-              </p-inputgroup>
-              <div *ngIf="submitted && !nuevoIngreso.proveedor" class="text-danger">
-                El proveedor es obligatorio.
-              </div>
-            </div>
-            <div class="col-md-4">
-              <label for="proveedor">Nro. de Formulario:</label>
-              <p-floatlabel variant="on">
-                <input pInputText id="num_form" [(ngModel)]="nuevoIngreso.num_form" [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper required class="w-full"/>
-                <label for="num_form">Nro. de Formulario:<span style="color: red">*</span></label>
-              </p-floatlabel>
-            </div>
-            <div class="col-md-4">
               <label for="estado">Estado:</label>
               <p-floatlabel variant="on">
-                <input pInputText id="estado" [(ngModel)]="nuevoIngreso.estado" [disabled]="true" [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper required class="w-full"/>
+                <input pInputText id="estado" [(ngModel)]="nuevoIngreso.estado" [disabled]="true"
+                  [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper required class="w-full" />
                 <label for="estado">Estado:</label>
               </p-floatlabel>
             </div>
@@ -112,7 +123,8 @@
             <div class="col-md-4">
               <label for="cerrado">Cerrado:</label>
               <p-floatlabel variant="on">
-                <p-select [options]="[{label: 'SI', value: 'SI'}]" [(ngModel)]="nuevoIngreso.cerrado" [ngModelOptions]="{standalone: true}" class="w-full" [disabled]="true" inputId="cerrado"></p-select>
+                <p-select [options]="[{label: 'SI', value: 'SI'}]" [(ngModel)]="nuevoIngreso.cerrado"
+                  [ngModelOptions]="{standalone: true}" class="w-full" [disabled]="true" inputId="cerrado"></p-select>
                 <label for="cerrado">Cerrado:<span style="color: red">*</span></label>
               </p-floatlabel>
               <div *ngIf="submitted && !nuevoIngreso.cerrado" class="text-danger">
@@ -121,7 +133,9 @@
             </div>
             <div class="col-md-4">
               <label for="forma_pago">Forma de Pago</label>
-              <select id="forma_pago" [(ngModel)]="nuevoIngreso.id_tipo_ingr_id" class="form-control w-full" (change)="getTipoIngresoChange(nuevoIngreso.id_tipo_ingr_id)" [ngModelOptions]="{standalone: true}" [attr.disabled]="true">
+              <select id="forma_pago" [(ngModel)]="nuevoIngreso.id_tipo_ingr_id" class="form-control w-full"
+                (change)="getTipoIngresoChange(nuevoIngreso.id_tipo_ingr_id)" [ngModelOptions]="{standalone: true}"
+                [attr.disabled]="true">
                 <option [ngValue]="''" selected disabled>Forma de Pago...</option>
                 <option *ngFor="let tipo of tipoIngresos" [ngValue]="tipo.id_tipo_ingr">{{ tipo.tipo_ingr }}</option>
               </select>
@@ -131,7 +145,9 @@
             </div>
             <div class="col-md-4">
               <label for="tipo_rubro">Tipo de Rubro o Servicio</label>
-              <select id="tipo_rubro" [(ngModel)]="nuevoIngreso.id_tipo_rubro" class="form-control w-full" (change)="getTipoRubroChange(nuevoIngreso.id_tipo_rubro)" [ngModelOptions]="{standalone: true}" [attr.disabled]="true">
+              <select id="tipo_rubro" [(ngModel)]="nuevoIngreso.id_tipo_rubro" class="form-control w-full"
+                (change)="getTipoRubroChange(nuevoIngreso.id_tipo_rubro)" [ngModelOptions]="{standalone: true}"
+                [attr.disabled]="true">
                 <option [ngValue]="''" selected disabled>Tipo de Rubro o Servicio...</option>
                 <option *ngFor="let tipo of tipoRubros" [ngValue]="tipo.id_detalle_rubro">{{ tipo.servicio }}</option>
               </select>
@@ -144,7 +160,8 @@
             <div class="col-md-4">
               <label for="monto">Monto:</label>
               <p-floatlabel variant="in">
-                <p-inputnumber [(ngModel)]="nuevoIngreso.monto" inputId="monto" (ngModelChange)="calculateCostoTotal()" [ngModelOptions]="{standalone: true}" required [minFractionDigits]="2" class="w-full"/>
+                <p-inputnumber [(ngModel)]="nuevoIngreso.monto" inputId="monto" (ngModelChange)="calculateCostoTotal()"
+                  [ngModelOptions]="{standalone: true}" required [minFractionDigits]="2" class="w-full" />
                 <label for="monto">Monto:<span style="color: red">*</span></label>
               </p-floatlabel>
               <div *ngIf="submitted && !nuevoIngreso.monto" class="text-danger">
@@ -154,7 +171,8 @@
             <div class="col-md-4">
               <label for="importe_total">Importe Total:</label>
               <p-floatlabel variant="in">
-                <p-inputnumber [(ngModel)]="nuevoIngreso.importe_total" inputId="importe_total" [minFractionDigits]="2" [ngModelOptions]="{standalone: true}" required class="w-full"/>
+                <p-inputnumber [(ngModel)]="nuevoIngreso.importe_total" inputId="importe_total" [minFractionDigits]="2"
+                  [ngModelOptions]="{standalone: true}" required class="w-full" />
                 <label for="importe_total">Importe Total:<span style="color: red">*</span></label>
               </p-floatlabel>
               <div *ngIf="submitted && !nuevoIngreso.importe_total" class="text-danger">
@@ -163,42 +181,51 @@
             </div>
             <div class="col-md-4">
               <label for="observacion">Observación</label>
-              <textarea pTextarea id="observacion" [(ngModel)]="nuevoIngreso.detalle" [ngModelOptions]="{standalone: true}" rows="5" cols="60" placeholder="Observacion" appUpper class="w-full">
+              <textarea pTextarea id="observacion" [(ngModel)]="nuevoIngreso.detalle"
+                [ngModelOptions]="{standalone: true}" rows="5" cols="60" placeholder="Observacion" appUpper
+                class="w-full">
               </textarea>
             </div>
-        
+
           </div>
           <div class="row mb-4">
             <div class="col-md-4">
               <label for="demasia_checkbox" style="margin-right: 10px;">¿Con Demasia?</label>
-              <p-checkbox [(ngModel)]="showDemasia" [binary]="true" [ngModelOptions]="{standalone: true}" inputId="demasia_checkbox"></p-checkbox>
+              <p-checkbox [(ngModel)]="showDemasia" [binary]="true" [ngModelOptions]="{standalone: true}"
+                inputId="demasia_checkbox"></p-checkbox>
               <div *ngIf="showDemasia" class="mt-2">
                 <p-floatlabel variant="in">
-                  <p-inputnumber [(ngModel)]="nuevoIngreso.deposito_dema" inputId="deposito_dema" [minFractionDigits]="2" (ngModelChange)="calculateCostoTotal()" [ngModelOptions]="{standalone: true}" required class="w-full"/>
+                  <p-inputnumber [(ngModel)]="nuevoIngreso.deposito_dema" inputId="deposito_dema"
+                    [minFractionDigits]="2" (ngModelChange)="calculateCostoTotal()"
+                    [ngModelOptions]="{standalone: true}" required class="w-full" />
                   <label for="deposito_dema">Deposito Demasia</label>
                 </p-floatlabel>
               </div>
             </div>
             <div class="col-md-4">
               <label for="amortizacion_checkbox" style="margin-right: 10px;">¿Con Amortizacion?</label>
-              <p-checkbox [(ngModel)]="showAmortizacion" [binary]="true" [ngModelOptions]="{standalone: true}" inputId="amortizacion_checkbox"></p-checkbox>
+              <p-checkbox [(ngModel)]="showAmortizacion" [binary]="true" [ngModelOptions]="{standalone: true}"
+                inputId="amortizacion_checkbox"></p-checkbox>
               <div *ngIf="showAmortizacion" class="mt-2">
                 <p-floatlabel variant="in">
-                  <p-inputnumber [(ngModel)]="nuevoIngreso.amortizacion_pagos" inputId="amortizacion_pagos" [minFractionDigits]="2" (ngModelChange)="calculateCostoTotal()" [ngModelOptions]="{standalone: true}" required class="w-full"/>
+                  <p-inputnumber [(ngModel)]="nuevoIngreso.amortizacion_pagos" inputId="amortizacion_pagos"
+                    [minFractionDigits]="2" (ngModelChange)="calculateCostoTotal()"
+                    [ngModelOptions]="{standalone: true}" required class="w-full" />
                   <label for="amortizacion_pagos">Amortizacion de Pagos</label>
                 </p-floatlabel>
               </div>
             </div>
-         
+
           </div>
         </div>
         <div *ngIf="nuevoIngreso.op_tipoemision === 'factura'">
-       
+
           <div class="row mb-4">
             <div class="col-md-4">
               <label for="proveedor">Nro. Factura:</label>
               <p-floatlabel variant="on">
-                <input pInputText id="num_factura" [(ngModel)]="nuevoIngreso.num_factura" [ngModelOptions]="{standalone: true}" [disabled]="false" appUpper required class="w-full"/>
+                <input pInputText id="num_factura" [(ngModel)]="nuevoIngreso.num_factura"
+                  [ngModelOptions]="{standalone: true}" [disabled]="false" appUpper required class="w-full" />
                 <label for="num_factura">Nro. Factura:<span style="color: red">*</span></label>
               </p-floatlabel>
               <div *ngIf="submitted && !nuevoIngreso.num_factura" class="text-danger">
@@ -207,7 +234,8 @@
             </div>
             <div class="col-md-4">
               <label for="lugar_select">Regional</label>
-              <p-select id="lugar_select" [(ngModel)]="nuevoIngreso.lugar" [ngModelOptions]="{standalone: true}" [options]="[
+              <p-select id="lugar_select" [(ngModel)]="nuevoIngreso.lugar" [ngModelOptions]="{standalone: true}"
+                [options]="[
                   {label: 'REGIONAL LA PAZ', value: 'REGIONAL LA PAZ'},
                   {label: 'REGIONAL COCHABAMBA', value: 'REGIONAL COCHABAMBA'},
                   {label: 'REGIONAL SANTA CRUZ', value: 'REGIONAL SANTA CRUZ'},
@@ -226,7 +254,8 @@
             <div class="col-md-2">
               <label for="proveedor">Fecha:</label>
               <p-floatlabel variant="on">
-                <p-datepicker [(ngModel)]="nuevoIngreso.fecha" [ngModelOptions]="{standalone: true}" [showIcon]="true" inputId="fecha_reg" dateFormat="dd/mm/yy" class="w-full"/>
+                <p-datepicker [(ngModel)]="nuevoIngreso.fecha" [ngModelOptions]="{standalone: true}" [showIcon]="true"
+                  inputId="fecha_reg" dateFormat="dd/mm/yy" class="w-full" />
                 <label for="fecha_reg">Fecha</label>
               </p-floatlabel>
               <div *ngIf="submitted && !nuevoIngreso.fecha" class="text-danger">
@@ -235,21 +264,24 @@
             </div>
             <div class="col-md-2">
               <label for="proveedor">Selecione un PDF:</label>
-                <button type="button" class="btn btn-primary" (click)="fileInput.click()">
-                  <em class="fa fa-file-pdf"></em>&nbsp; Importar Factura
-                </button>
-                <input #fileInput type="file" accept=".pdf" (change)="onPdfSelected($event)" style="display: none;" />
-              </div>
-           
+              <button type="button" class="btn btn-primary" (click)="fileInput.click()">
+                <em class="fa fa-file-pdf"></em>&nbsp; Importar Factura
+              </button>
+              <input #fileInput type="file" accept=".pdf" (change)="onPdfSelected($event)" style="display: none;" />
+            </div>
+
           </div>
-        
+
           <div class="row mb-4">
-     
+
             <div class="col-md-4">
               <label for="proveedor">Razón Social</label>
               <p-inputgroup class="w-full">
-                <button pButton type="button" label="Buscar" class="p-button-success" (click)="setModalProveedor()" data-toggle="modal" data-target="#modalProveedor"></button>
-                <input pInputText id="proveedor" [(ngModel)]="nuevoIngreso.proveedor" [ngModelOptions]="{standalone: true}" [attr.disabled]="true" required placeholder="Razón Social" class="w-full"/>
+                <button pButton type="button" label="Buscar" class="p-button-success" (click)="setModalProveedor()"
+                  data-toggle="modal" data-target="#modalProveedor"></button>
+                <input pInputText id="proveedor" [(ngModel)]="nuevoIngreso.proveedor"
+                  [ngModelOptions]="{standalone: true}" [attr.disabled]="true" required placeholder="Razón Social"
+                  class="w-full" />
               </p-inputgroup>
               <div *ngIf="submitted && !nuevoIngreso.proveedor" class="text-danger">
                 El proveedor es obligatorio.
@@ -258,7 +290,8 @@
             <div class="col-md-4">
               <label for="proveedor">Nro. Nit:</label>
               <p-floatlabel variant="on">
-                <input pInputText id="nit" [(ngModel)]="nuevoIngreso.nit" [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper required class="w-full"/>
+                <input pInputText id="nit" [(ngModel)]="nuevoIngreso.nit" [ngModelOptions]="{standalone: true}"
+                  [attr.disabled]="true" appUpper required class="w-full" />
                 <label for="nit">Nit:</label>
               </p-floatlabel>
               <div *ngIf="submitted && !nuevoIngreso.nit" class="text-danger">
@@ -268,7 +301,8 @@
             <div class="col-md-4">
               <label for="proveedor">Cerrado:</label>
               <p-floatlabel variant="on">
-                <p-select [options]="[{label: 'SI', value: 'SI'}]" [(ngModel)]="nuevoIngreso.cerrado" [ngModelOptions]="{standalone: true}" class="w-full" [disabled]="true" inputId="cerrado"></p-select>
+                <p-select [options]="[{label: 'SI', value: 'SI'}]" [(ngModel)]="nuevoIngreso.cerrado"
+                  [ngModelOptions]="{standalone: true}" class="w-full" [disabled]="true" inputId="cerrado"></p-select>
                 <label for="cerrado">Cerrado:<span style="color: red">*</span></label>
               </p-floatlabel>
               <div *ngIf="submitted && !nuevoIngreso.cerrado" class="text-danger">
@@ -276,19 +310,22 @@
               </div>
             </div>
           </div>
-        
+
           <div class="row mb-4">
             <div class="col-md-4">
               <label for="proveedor">Estado:</label>
               <p-floatlabel variant="on">
-                <input pInputText id="estado" [(ngModel)]="nuevoIngreso.estado" [disabled]="true" [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper required class="w-full"/>
+                <input pInputText id="estado" [(ngModel)]="nuevoIngreso.estado" [disabled]="true"
+                  [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper required class="w-full" />
                 <label for="estado">Estado:</label>
               </p-floatlabel>
             </div>
-     
+
             <div class="col-md-4">
               <label for="forma_pago_select">Forma de Pago</label>
-              <select id="forma_pago_select" [(ngModel)]="nuevoIngreso.id_tipo_ingr_id" class="form-control w-full" (change)="getTipoIngresoChange(nuevoIngreso.id_tipo_ingr_id)" [ngModelOptions]="{standalone: true}" [attr.disabled]="true">
+              <select id="forma_pago_select" [(ngModel)]="nuevoIngreso.id_tipo_ingr_id" class="form-control w-full"
+                (change)="getTipoIngresoChange(nuevoIngreso.id_tipo_ingr_id)" [ngModelOptions]="{standalone: true}"
+                [attr.disabled]="true">
                 <option [ngValue]="''" selected disabled>Forma de Pago...</option>
                 <option *ngFor="let tipo of tipoIngresos" [ngValue]="tipo.id_tipo_ingr">{{ tipo.tipo_ingr }}</option>
               </select>
@@ -298,7 +335,9 @@
             </div>
             <div class="col-md-4">
               <label for="tipo_rubro_select">Tipo de Rubro o Servicio</label>
-              <select id="tipo_rubro_select" [(ngModel)]="nuevoIngreso.id_tipo_rubro" class="form-control w-full" (change)="getTipoRubroChange(nuevoIngreso.id_tipo_rubro)" [ngModelOptions]="{standalone: true}" [attr.disabled]="true">
+              <select id="tipo_rubro_select" [(ngModel)]="nuevoIngreso.id_tipo_rubro" class="form-control w-full"
+                (change)="getTipoRubroChange(nuevoIngreso.id_tipo_rubro)" [ngModelOptions]="{standalone: true}"
+                [attr.disabled]="true">
                 <option [ngValue]="''" selected disabled>Tipo de Rubro o Servicio...</option>
                 <option *ngFor="let tipo of tipoRubros" [ngValue]="tipo.id_detalle_rubro">{{ tipo.servicio }}</option>
               </select>
@@ -307,12 +346,13 @@
               </div>
             </div>
           </div>
-        
+
           <div class="row mb-4">
             <div class="col-md-4">
               <label for="monto">Monto:</label>
               <p-floatlabel variant="in">
-                <p-inputnumber [(ngModel)]="nuevoIngreso.monto" inputId="monto" required [minFractionDigits]="2" (ngModelChange)="calculateCostoTotal2()" [ngModelOptions]="{standalone: true}" class="w-full"/>
+                <p-inputnumber [(ngModel)]="nuevoIngreso.monto" inputId="monto" required [minFractionDigits]="2"
+                  (ngModelChange)="calculateCostoTotal2()" [ngModelOptions]="{standalone: true}" class="w-full" />
                 <label for="monto">Monto:<span style="color: red">*</span></label>
               </p-floatlabel>
               <div *ngIf="submitted && !nuevoIngreso.monto" class="text-danger">
@@ -322,7 +362,9 @@
             <div class="col-md-4">
               <label for="importe_total">Importe Total:</label>
               <p-floatlabel variant="in">
-                <p-inputnumber [(ngModel)]="nuevoIngreso.importe_total" inputId="importe_total" [minFractionDigits]="2" (ngModelChange)="calculateCostoTotal2()" [ngModelOptions]="{standalone: true}" required class="w-full"/>
+                <p-inputnumber [(ngModel)]="nuevoIngreso.importe_total" inputId="importe_total" [minFractionDigits]="2"
+                  (ngModelChange)="calculateCostoTotal2()" [ngModelOptions]="{standalone: true}" required
+                  class="w-full" />
                 <label for="importe_total">Importe Total:<span style="color: red">*</span></label>
               </p-floatlabel>
               <div *ngIf="submitted && !nuevoIngreso.importe_total" class="text-danger">
@@ -331,17 +373,20 @@
             </div>
             <div class="col-md-4">
               <label for="observacion">Observación</label>
-              <textarea pTextarea id="observacion" [(ngModel)]="nuevoIngreso.detalle" [ngModelOptions]="{standalone: true}" rows="5" cols="60" placeholder="Observacion" appUpper class="w-full">
+              <textarea pTextarea id="observacion" [(ngModel)]="nuevoIngreso.detalle"
+                [ngModelOptions]="{standalone: true}" rows="5" cols="60" placeholder="Observacion" appUpper
+                class="w-full">
               </textarea>
             </div>
           </div>
         </div>
         <div *ngIf="nuevoIngreso.op_tipoemision == 'documento'">
-  
+
           <div class="row mb-4">
             <div class="col-md-4">
               <label for="lugar_select">Regional</label>
-              <p-select id="lugar_select" [(ngModel)]="nuevoIngreso.lugar" [ngModelOptions]="{standalone: true}" [options]="[
+              <p-select id="lugar_select" [(ngModel)]="nuevoIngreso.lugar" [ngModelOptions]="{standalone: true}"
+                [options]="[
                   {label: 'REGIONAL LA PAZ', value: 'REGIONAL LA PAZ'},
                   {label: 'REGIONAL COCHABAMBA', value: 'REGIONAL COCHABAMBA'},
                   {label: 'REGIONAL SANTA CRUZ', value: 'REGIONAL SANTA CRUZ'},
@@ -357,35 +402,35 @@
                 Obligatorio.
               </div>
             </div>
-            
+
             <div class="col-md-4">
               <label for="fecha_reg">Fecha:</label>
               <p-floatlabel variant="on">
                 <p-datepicker [(ngModel)]="nuevoIngreso.fecha" [ngModelOptions]="{standalone: true}" [showIcon]="true"
-                  inputId="fecha_reg" [showOnFocus]="false" dateFormat="dd/mm/yy" class="w-full"/>
+                  inputId="fecha_reg" [showOnFocus]="false" dateFormat="dd/mm/yy" class="w-full" />
                 <label for="fecha_reg">Fecha</label>
               </p-floatlabel>
               <div *ngIf="submitted && !nuevoIngreso.fecha" class="text-danger">
                 La fecha es obligatoria.
               </div>
             </div>
-            
+
             <div class="col-md-4">
               <label for="fecha_reg">Importar Excel</label>
               <label>&nbsp;</label>
-                <button type="button" class="btn btn-success w-full" (click)="fileInput.click()">
-                  <em class="fa fa-file-excel"></em>&nbsp; Importar Excel
-                </button>
-                <input #fileInput type="file" accept=".xlsx, .xls" (change)="onFileChange($event)"
-                  style="display: none;" />
-              </div>
+              <button type="button" class="btn btn-success w-full" (click)="fileInput.click()">
+                <em class="fa fa-file-excel"></em>&nbsp; Importar Excel
+              </button>
+              <input #fileInput type="file" accept=".xlsx, .xls" (change)="onFileChange($event)"
+                style="display: none;" />
+            </div>
 
           </div>
-        
+
           <div class="row mb-4">
             <div class="col-md-4">
               <label for="forma_pago_select">Forma de Pago</label>
-              <select id="forma_pago_select" [(ngModel)]="nuevoIngreso.id_tipo_ingr_id" 
+              <select id="forma_pago_select" [(ngModel)]="nuevoIngreso.id_tipo_ingr_id"
                 (change)="getTipoIngresoChange(nuevoIngreso.id_tipo_ingr_id)" class="form-control w-full"
                 [ngModelOptions]="{standalone: true}">
                 <option [ngValue]="''" selected disabled>Forma de Pago...</option>
@@ -395,10 +440,10 @@
                 El campo Tipo de Ingreso es obligatorio.
               </div>
             </div>
-        
+
             <div class="col-md-4">
               <label for="tipo_rubro_select">Tipo de Rubro o Servicio</label>
-              <select id="tipo_rubro_select" [(ngModel)]="nuevoIngreso.id_tipo_rubro" 
+              <select id="tipo_rubro_select" [(ngModel)]="nuevoIngreso.id_tipo_rubro"
                 (change)="getTipoRubroChange(nuevoIngreso.id_tipo_rubro)" class="form-control w-full"
                 [ngModelOptions]="{standalone: true}">
                 <option [ngValue]="''" selected disabled>Tipo de Rubro o Servicio...</option>
@@ -408,11 +453,12 @@
                 El campo Tipo de Rubro es obligatorio.
               </div>
             </div>
-            
+
             <div class="col-md-4">
               <label for="observacion">Observación</label>
               <textarea pTextarea id="observacion" [(ngModel)]="nuevoIngreso.detalle"
-                [ngModelOptions]="{standalone: true}" rows="5" cols="60" placeholder="Observacion" appUpper class="w-full">
+                [ngModelOptions]="{standalone: true}" rows="5" cols="60" placeholder="Observacion" appUpper
+                class="w-full">
               </textarea>
             </div>
           </div>

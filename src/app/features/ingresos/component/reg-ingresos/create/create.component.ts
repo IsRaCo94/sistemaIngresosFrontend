@@ -12,6 +12,7 @@ import { RubrosDetalle } from '../../../../models/rubrosDetalle';
 import { persona } from '../../../../models/persona';
 import * as XLSX from 'xlsx';
 import { forkJoin } from 'rxjs';
+import { data } from 'jquery';
 
 @Component({
   selector: 'app-create',
@@ -93,6 +94,7 @@ export class CreateComponent implements OnInit {
     // this.getNextNumFactura();
     this.onOpTipoEmisionChange(this.nuevoIngreso.op_tipoemision);
 
+
   }
 
   onPdfSelected(event: any) {
@@ -136,7 +138,7 @@ export class CreateComponent implements OnInit {
           });
         }
       });
-    }  
+    }
   }
 
   onFileChange(evt: any) {
@@ -145,7 +147,7 @@ export class CreateComponent implements OnInit {
       Swal.fire('Error', 'Debe seleccionar un archivo.', 'error');
       return;
     }
-  
+
     // Validar extensión de archivo
     const validExtensions = ['.xlsx', '.xls'];
     const fileName = file.name.toLowerCase();
@@ -153,9 +155,9 @@ export class CreateComponent implements OnInit {
       Swal.fire('Error', 'Solo se permiten archivos de Excel (.xlsx, .xls).', 'error');
       return;
     }
-  
+
     this.excelFileToImport = file;
-  
+
     const reader: FileReader = new FileReader();
     reader.onload = (e: any) => {
       const bstr: string = e.target.result;
@@ -163,24 +165,24 @@ export class CreateComponent implements OnInit {
       const wsname: string = wb.SheetNames[0];
       const ws: XLSX.WorkSheet = wb.Sheets[wsname];
       const data: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
-  
+
       // Validar encabezados
       const headers = data[0] || [];
       const expectedHeaders = ['Nro. DEPOSITO', 'DESCRIPCIÓN', 'IMPORTE TOTAL', 'FECHA'];
       const normalize = (str: string) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toUpperCase();
       const headersValid = expectedHeaders.every((h, i) => normalize(headers[i] || '') === normalize(h));
-  
+
       if (!headersValid) {
         Swal.fire('Error', 'El archivo debe tener las columnas: ' + expectedHeaders.join(', '), 'error');
         return;
       }
-  
+
       // Validar que haya al menos un dato
       if (data.length <= 1) {
         Swal.fire('Error', 'El archivo no contiene datos para importar.', 'error');
         return;
       }
-  
+
       // Mapear datos, asegurando que cada fila sea un array
       this.excelPreview = data.slice(1).map((row: any[]) => {
         // Convert importe_total to number with 2 decimals
@@ -189,14 +191,14 @@ export class CreateComponent implements OnInit {
           importe = importe.replace(',', '.'); // Replace comma decimal separator if any
         }
         const importe_total = parseFloat(importe) || 0;
-  
+
         // Instead of using Excel date, use this.nuevoIngreso.fecha formatted as dd/mm/yyyy
-        const fechaStr = this.nuevoIngreso.fecha ? 
+        const fechaStr = this.nuevoIngreso.fecha ?
           new Date(this.nuevoIngreso.fecha).toLocaleDateString('es-ES') : '';
-  
+
         // Find the rubro object matching the selected id_tipo_rubro
         const rubro = this.tipoRubros.find(r => r.id_detalle_rubro === this.nuevoIngreso.id_tipo_rubro);
-  
+
         return {
           num_depo: row[0] ?? '',
           proveedor: row[1] ?? '',
@@ -212,7 +214,7 @@ export class CreateComponent implements OnInit {
           detalle: this.nuevoIngreso.detalle || ''
         };
       });
-  
+
       // Validar que todos los campos requeridos estén presentes en cada fila
       const datosValidos = this.excelPreview.every(ingre =>
         ingre.num_depo && ingre.proveedor && ingre.importe_total && ingre.fecha
@@ -221,14 +223,14 @@ export class CreateComponent implements OnInit {
         Swal.fire('Error', 'Todos los campos son obligatorios en cada fila.', 'error');
         return;
       }
-        
+
       // Mostrar el modal de importación
       this.selectedItem = 3;
     };
     reader.readAsBinaryString(file);
-  
-}
- 
+
+  }
+
   iniIngreso() {
 
     this.nuevoIngreso.lugar
@@ -288,7 +290,7 @@ export class CreateComponent implements OnInit {
   receiveMessageImportDocumento($event: ingresos) {
     //this.selectedItem = 3;
   }
-  
+
   //   receiveMessageProveedor($event: any) {
 
   //     this.nuevoIngreso.proveedor = $event.nombre
@@ -531,7 +533,85 @@ export class CreateComponent implements OnInit {
     }
 
   }
+  buscarAporte(num_form: number) {
+    if (this.nuevoIngreso.tipo_emision !== 'RECIBO') {
+      return;
+    }
 
+    this.ingresoService.getAportes(num_form).subscribe({
+      next: (data: any) => {
+        console.log('Full aporte data:', data);
+        if (data && data.pagos && data.pagos.length > 0) {
+          const aporte = data.pagos[0];
+          this.nuevoIngreso.proveedor = aporte.EMPRESA || '';
+          // Parse date string dd/mm/yyyy to Date object
+          if (aporte.FECHA_PAGO) {
+            const parts = aporte.FECHA_PAGO.split('/');
+            if (parts.length === 3) {
+              const day = parseInt(parts[0], 10);
+              const month = parseInt(parts[1], 10) - 1;
+              const year = parseInt(parts[2], 10);
+              this.nuevoIngreso.fecha = new Date(year, month, day);
+            } else {
+              this.nuevoIngreso.fecha = new Date(aporte.FECHA_PAGO);
+            }
+          } else {
+            this.nuevoIngreso.fecha = new Date();
+          }
+          this.nuevoIngreso.monto = aporte.TOTAL_IMPORTE_PLANILLA || 0;
+          this.nuevoIngreso.importe_total = aporte.TOTAL_IMPORTE_PLANILLA || 0;
+
+          // Handle deposito_dema and op_deposito_dema flag
+          // ... existing code ...
+          if (aporte.MONTO_DEMASIA && aporte.MONTO_DEMASIA > 0) {
+            this.nuevoIngreso.deposito_dema = aporte.MONTO_DEMASIA;
+            this.showDemasia = true;  // Use showDemasia instead of op_deposito_dema
+          } else {
+            this.nuevoIngreso.deposito_dema = 0;
+            this.showDemasia = false; // Use showDemasia instead of op_deposito_dema
+          }
+          // ... existing code ...
+
+          // Recalculate importe_total
+          //this.calculateCostoTotal();
+
+          // Set tipo_ingres and id_tipo_ingr_id automatically if METODO_PAGO is "DEPOSITO O TRANSFERENCIA"
+          if (aporte.METODO_PAGO) {
+            const metodoPagoUpper = aporte.METODO_PAGO.toUpperCase();
+            if (metodoPagoUpper === 'DEPOSITO O TRANSFERENCIA') {
+              const tipoIngresoMatch = this.tipoIngresos.find(ti => ti.tipo_ingr.toUpperCase() === 'DEPOSITO A LA CUENTA');
+              if (tipoIngresoMatch) {
+                this.nuevoIngreso.tipo_ingres = tipoIngresoMatch.tipo_ingr;
+                this.nuevoIngreso.id_tipo_ingr_id = tipoIngresoMatch.id_tipo_ingr;
+              } else {
+                this.nuevoIngreso.tipo_ingres = 'DEPOSITO A LA CUENTA';
+                this.nuevoIngreso.id_tipo_ingr_id = '';
+              }
+            } else if (metodoPagoUpper === 'SIGEP') {
+              const tipoIngresoMatch = this.tipoIngresos.find(ti => ti.tipo_ingr.toUpperCase() === 'TRASPASO TGN');
+              if (tipoIngresoMatch) {
+                this.nuevoIngreso.tipo_ingres = tipoIngresoMatch.tipo_ingr;
+                this.nuevoIngreso.id_tipo_ingr_id = tipoIngresoMatch.id_tipo_ingr;
+              } else {
+                this.nuevoIngreso.tipo_ingres = 'TRASPASO TGN';
+                this.nuevoIngreso.id_tipo_ingr_id = '';
+              }
+            }
+          }
+
+          // Show success Swal after loading data
+          Swal.fire('Datos cargados', 'Los datos del aporte fueron cargados correctamente.', 'success');
+
+        } else {
+          Swal.fire('No encontrado', 'No se encontró aporte con ese número de formulario.', 'info');
+        }
+      },
+      error: (error) => {
+        console.error('Error al buscar aporte:', error);
+        Swal.fire('Error', 'Ocurrió un error al buscar el aporte.', 'error');
+      }
+    });
+  }
 
   // guardarRegistro() {
 
@@ -634,7 +714,7 @@ export class CreateComponent implements OnInit {
         ingresoToSave.num_depo = row.num_depo;
         ingresoToSave.proveedor = row.proveedor;
         ingresoToSave.importe_total = parseFloat(row.importe_total);
-  
+
         // Parse date string "dd/mm/yyyy" to Date object
         if (row.fecha) {
           const parts = row.fecha.split('/');
@@ -649,7 +729,7 @@ export class CreateComponent implements OnInit {
         } else {
           ingresoToSave.fecha = new Date(); // fallback current date
         }
-  
+
         ingresoToSave.lugar = row.lugar;
         ingresoToSave.detalle = row.detalle || '';
         ingresoToSave.monto = parseFloat(row.importe_total);
@@ -664,14 +744,14 @@ export class CreateComponent implements OnInit {
         ingresoToSave.num_rubro = row.num_rubro || '';
         ingresoToSave.servicio = row.servicio || '';
         ingresoToSave.nombre = row.nombre || '';
-  
+
         ingresoToSave.tipo_ingres = row.tipo_ingres || '';
         ingresoToSave.id_tipo_ingr_id = row.id_tipo_ingr_id || '';
         ingresoToSave.id_tipo_rubro = row.id_tipo_rubro || '';
-  
+
         return this.ingresoService.postIngresos(ingresoToSave);
       });
-  
+
       forkJoin(saveObservables).subscribe({
         next: () => {
           this.isLoading = false;
@@ -697,10 +777,10 @@ export class CreateComponent implements OnInit {
           this.nuevoIngreso.tipo_emision = 'RECIBO';
           break;
       }
-  
+
       // Validation logic as in your existing guardarRegistro method
       // ...
-  
+
       this.isLoading = true;
       this.ingresoService.postIngresos(this.nuevoIngreso)
         .subscribe({

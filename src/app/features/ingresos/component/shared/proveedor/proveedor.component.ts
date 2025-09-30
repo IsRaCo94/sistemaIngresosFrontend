@@ -97,7 +97,7 @@ export class ProveedorComponent implements OnInit {
     .subscribe((res: any) => {
       this.proveedores = res.empresas as empresa[];  // <-- typed assignment here
       this.loading = false;
-    });
+    });    
 }
     
 }
