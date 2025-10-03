@@ -25,3 +25,269 @@
 .align-middle-cell {
     vertical-align: middle; /* Aligns content vertically to the middle */
 }
+/* Estilos estándar mejorados para ingresos */
+
+/* Estados de registros mejorados */
+.status-CONSOLIDADO {
+  color: #155724;
+  background-color: #d4edda;
+  font-weight: bold;
+  padding: 5px 8px;
+  border-radius: 4px;
+  display: block;
+}
+
+.status-inactivo {
+  color: #721c24;
+  background-color: #f8d7da;
+  font-weight: bold;
+  padding: 5px 8px;
+  border-radius: 4px;
+  display: block;
+}
+
+.status-PENDIENTE {
+  color: #856404;
+  background-color: #fff3cd;
+  font-weight: bold;
+  padding: 5px 8px;
+  border-radius: 4px;
+  display: block;
+}
+
+.align-middle-cell {
+  vertical-align: middle;
+}
+
+/* Tarjetas mejoradas */
+.card {
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Headers de tarjetas con colores diferenciados */
+.card-info .card-header {
+  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+  color: white;
+  border-radius: 10px 10px 0 0;
+}
+
+.card-warning .card-header {
+  background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+  color: #212529;
+  border-radius: 10px 10px 0 0;
+}
+
+.card-success .card-header {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border-radius: 10px 10px 0 0;
+}
+
+/* Tabla mejorada */
+.table {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.table thead th {
+  background: linear-gradient(135deg, #343a40 0%, #495057 100%);
+  color: white;
+  border: none;
+  font-weight: 600;
+  padding: 12px;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+/* Botones mejorados */
+.btn {
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+}
+
+/* Botones de acción pequeños mejorados */
+.btn-sm {
+  padding: 6px 10px;
+  font-size: 0.875rem;
+  border-radius: 4px;
+}
+
+.btn-outline-warning {
+  border-color: #ffc107;
+  color: #856404;
+}
+
+.btn-outline-warning:hover {
+  background-color: #ffc107;
+  border-color: #ffc107;
+  color: #212529;
+}
+
+.btn-outline-danger {
+  border-color: #dc3545;
+  color: #721c24;
+}
+
+.btn-outline-danger:hover {
+  background-color: #dc3545;
+  border-color: #dc3545;
+  color: white;
+}
+
+.btn-outline-primary {
+  border-color: #007bff;
+  color: #007bff;
+}
+
+.btn-outline-primary:hover {
+  background-color: #007bff;
+  border-color: #007bff;
+  color: white;
+}
+
+/* Formularios mejorados */
+.form-control {
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Badges mejoradas */
+.badge {
+  border-radius: 15px;
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  font-weight: 600;
+}
+
+.badge-success {
+  background-color: #28a745;
+}
+
+.badge-info {
+  background-color: #17a2b8;
+}
+
+.badge-warning {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+/* Estados vacíos mejorados */
+.alert {
+  border-radius: 8px;
+  border: none;
+  font-weight: 500;
+}
+
+.alert-info {
+  background-color: rgba(23, 162, 184, 0.1);
+  color: #0c5460;
+  border-left: 4px solid #17a2b8;
+}
+
+.alert-warning {
+  background-color: rgba(255, 193, 7, 0.1);
+  color: #856404;
+  border-left: 4px solid #ffc107;
+}
+
+/* Content header mejorado */
+.content-header {
+  background: linear-gradient(135deg, #4c854c 0%, #81bea1 100%); /* Light green to blue */
+  color: white;
+  padding: 15px 0;
+  margin-bottom: 20px;
+  border-radius: 0 0 15px 15px;
+}
+
+.content-header h1 {
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Iconos asegurados */
+.btn i, .btn-sm i {
+  opacity: 1;
+  margin-right: 3px;
+}
+
+.btn-outline-warning i,
+.btn-outline-danger i,
+.btn-outline-primary i {
+  opacity: 1;
+}
+
+/* Paginación mejorada */
+.btn-outline-secondary {
+  border-color: #6c757d;
+  color: #495057;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  color: white;
+}
+
+/* Responsive básico */
+@media (max-width: 768px) {
+  .card {
+    margin-bottom: 15px;
+  }
+
+  .btn-group {
+    flex-direction: column;
+  }
+
+  .btn-group .btn {
+    border-radius: 0;
+    margin-bottom: 5px;
+  }
+
+  .btn-group .btn:first-child {
+    border-radius: 6px 6px 0 0;
+  }
+
+  .btn-group .btn:last-child {
+    border-radius: 0 0 6px 6px;
+  }
+}
+
+/* Información de paginación mejorada */
+.d-flex.justify-content-between {
+  background: rgba(248, 249, 250, 0.8);
+  padding: 12px 15px;
+  border-radius: 8px;
+  margin-top: 15px;
+  border: 1px solid rgba(0,0,0,0.05);
+}

@@ -14,6 +14,7 @@ import { FloatLabelModule } from 'primeng/floatlabel';
 import { PrimeNgModules } from '../../../ngprime.modules';
 import { PersonasModule } from "../shared/personas/personas.module";
 import { ImportarDocumentoModule } from "../shared/importar-documento/importar-documento.module";
+import { SafeUrlPipe } from '../../../../shared/pipes/safe-url.pipe';
 
 @NgModule({
   declarations: [
@@ -30,7 +31,8 @@ import { ImportarDocumentoModule } from "../shared/importar-documento/importar-d
     ImportDataModule,
     PrimeNgModules,
     PersonasModule,
-    ImportarDocumentoModule
+    ImportarDocumentoModule,
+    SafeUrlPipe,
 ]
 })
 export class RegIngresosModule { }

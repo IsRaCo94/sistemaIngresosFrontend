@@ -26,19 +26,106 @@
     }" style="padding: 20px;">
       <form>
         <div class="row mb-4">
-          <div class="col-md-3">
-            <p-floatlabel variant="on">
-              <p-select
-                [options]="[{label: 'Factura', value: 'factura'}, {label: 'Recibo', value: 'recibo'},{label: 'Documento', value: 'documento'}]"
-                [(ngModel)]="nuevoIngreso.op_tipoemision" (ngModelChange)="onOpTipoEmisionChange($event)"
-                [ngModelOptions]="{standalone: true}" class="w-full" inputId="op_tipoemision">
-              </p-select>
-              <label for="op_tipoemision">SELECCIONE EL TIPO DE EMISION</label>
-            </p-floatlabel>
+          <div class="col-md-12">
+            <label>TIPO DE EMISION</label>
+            <div class="btn-group w-full" role="group" aria-label="Tipo de Emision">
+              <button type="button" class="btn" 
+                [ngClass]="{'btn-success': nuevoIngreso.op_tipoemision === 'factura', 'btn-outline-success': nuevoIngreso.op_tipoemision !== 'factura'}"
+                (click)="nuevoIngreso.op_tipoemision = 'factura'; onOpTipoEmisionChange('factura')">
+                <i class="fas fa-file-invoice"></i> FACTURA
+              </button>
+              <button type="button" class="btn" 
+                [ngClass]="{'btn-primary': nuevoIngreso.op_tipoemision === 'recibo', 'btn-outline-primary': nuevoIngreso.op_tipoemision !== 'recibo'}"
+                (click)="nuevoIngreso.op_tipoemision = 'recibo'; onOpTipoEmisionChange('recibo')">
+                <i class="fas fa-receipt"></i> RECIBOS
+              </button>
+              <button type="button" class="btn" 
+                [ngClass]="{'btn-warning': nuevoIngreso.op_tipoemision === 'documento', 'btn-outline-warning': nuevoIngreso.op_tipoemision !== 'documento'}"
+                (click)="nuevoIngreso.op_tipoemision = 'documento'; onOpTipoEmisionChange('documento')">
+                <i class="fas fa-file-alt"></i> DOCUMENTO
+              </button>
+            </div>
           </div>
         </div>
         <div *ngIf="nuevoIngreso.op_tipoemision === 'recibo'">
           <div class="row mb-4">
+
+            <div class="col-md-4">
+              <label for="tipo_rubro">Tipo de Rubro o Servicio</label>
+              <select id="tipo_rubro" [(ngModel)]="nuevoIngreso.id_tipo_rubro" class="form-control w-full"
+                (change)="getTipoRubroChange(nuevoIngreso.id_tipo_rubro)" [ngModelOptions]="{standalone: true}"
+                [attr.disabled]="true">
+                <option [ngValue]="''" selected disabled>Tipo de Rubro o Servicio...</option>
+                <option *ngFor="let tipo of tipoRubros" [ngValue]="tipo.id_detalle_rubro">{{ tipo.servicio }}</option>
+              </select>
+              <div *ngIf="submitted && !nuevoIngreso.id_tipo_rubro" class="text-danger">
+                El campo Tipo de Rubro es obligatorio.
+              </div>
+            </div>
+       
+            <div class="col-md-4" *ngIf="!isExcludedRubro(nuevoIngreso.id_tipo_rubro)">
+              <label for="proveedor">Nro. de Formulario:</label>
+              <p-floatlabel variant="on">
+                <p-inputgroup>
+                  <input pInputText id="num_form" [(ngModel)]="nuevoIngreso.num_form"
+                    [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper required class="w-full"
+                    (keyup.enter)="buscarAporte(nuevoIngreso.num_form)" />
+                  <p-button type="button" icon="pi pi-search" severity="primary" (click)="buscarAporte(nuevoIngreso.num_form)"
+                    [disabled]="!nuevoIngreso.num_form"></p-button>
+                </p-inputgroup>
+                <label for="num_form">Nro. de Formulario:<span style="color: red">*</span></label>
+              </p-floatlabel>
+            </div>
+            
+            <div class="col-md-2">
+              <label for="fecha_reg">Fecha:</label>
+              <p-floatlabel variant="on">
+                <p-datepicker [(ngModel)]="nuevoIngreso.fecha" [ngModelOptions]="{standalone: true}" [showIcon]="true"
+                  inputId="fecha_reg" dateFormat="dd/mm/yy" class="w-full" />
+                <label for="fecha_reg">Fecha</label>
+              </p-floatlabel>
+              <div *ngIf="submitted && !nuevoIngreso.fecha" class="text-danger">
+                La fecha es obligatoria.
+              </div>
+            </div>
+            <div class="col-md-2">
+              <label for="fecha_reg">Importar Excel</label>
+              <label>&nbsp;</label>
+              <button type="button" class="btn btn-success" (click)="fileInput.click()">
+                <em class="fa fa-file-excel"></em>&nbsp; Importar Excel
+              </button>
+              <input #fileInput type="file" accept=".xlsx, .xls" (change)="onFileChangeRecibo($event)"
+                style="display: none;" />
+            </div>
+          </div>
+          <div class="row mb-4">
+            <div class="col-md-4">
+              <label for="proveedor">Razón Social</label>
+              <p-inputgroup class="w-full">
+                <input pInputText id="proveedor" [(ngModel)]="nuevoIngreso.proveedor"
+                  [ngModelOptions]="{standalone: true}" [attr.disabled]="true" required placeholder="Razon Social"
+                  class="w-full" />
+                <p-button type="button" icon="pi pi-search" severity="success" (click)="setModalProveedor()"></p-button>
+              </p-inputgroup>
+              <div *ngIf="submitted && !nuevoIngreso.proveedor" class="text-danger">
+                El proveedor es obligatorio.
+              </div>
+            </div>
+            <div class="col-md-4" *ngIf="isVentaDeCarnets(nuevoIngreso.id_tipo_rubro)">
+              <label for="proveedor">Nro. Nit o Carnet de Indentidad:</label>
+              <p-floatlabel variant="on">
+                <p-inputgroup>
+                  <input pInputText id="nit" [(ngModel)]="nuevoIngreso.nit" [ngModelOptions]="{standalone: true}"
+                    [attr.disabled]="true" appUpper required class="w-full" (keyup.enter)="checkAndAddCarnetCI()" />
+                  <p-button icon="pi pi-check" (click)="checkAndAddCarnetCI()"></p-button>
+                </p-inputgroup>
+                <label for="nit">Nit o CI:</label>
+              </p-floatlabel>
+              <div *ngIf="submitted && !nuevoIngreso.nit" class="text-danger">
+                La cuenta es obligatoria.
+              </div>
+            </div>
+  
             <div class="col-md-4">
               <label for="proveedor">Nro. Recibo:</label>
               <p-floatlabel variant="on">
@@ -50,46 +137,20 @@
                 El número de recibo es obligatorio.
               </div>
             </div>
-            <div class="col-md-4">
-              <label for="proveedor">Nro. de Formulario:</label>
-              <p-floatlabel variant="on">
-                <p-inputgroup>
-                  <input pInputText id="num_form" [(ngModel)]="nuevoIngreso.num_form"
-                    [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper required class="w-full"
-                    (keyup.enter)="buscarAporte(nuevoIngreso.num_form)" />
-                  <button pButton type="button" class="p-button-primary" (click)="buscarAporte(nuevoIngreso.num_form)"
-                    [disabled]="!nuevoIngreso.num_form">Buscar</button>
-                </p-inputgroup>
-                <label for="num_form">Nro. de Formulario:<span style="color: red">*</span></label>
-              </p-floatlabel>
-            </div>
-            
-            <div class="col-md-4">
-              <label for="fecha_reg">Fecha:</label>
-              <p-floatlabel variant="on">
-                <p-datepicker [(ngModel)]="nuevoIngreso.fecha" [ngModelOptions]="{standalone: true}" [showIcon]="true"
-                  inputId="fecha_reg" dateFormat="dd/mm/yy" class="w-full" />
-                <label for="fecha_reg">Fecha</label>
-              </p-floatlabel>
-              <div *ngIf="submitted && !nuevoIngreso.fecha" class="text-danger">
-                La fecha es obligatoria.
-              </div>
-            </div>
           </div>
           <div class="row mb-4">
-            <div class="col-md-4">
-              <label for="proveedor">Razón Social</label>
-              <p-inputgroup class="w-full">
-                <button pButton type="button" label="Buscar" class="p-button-success" (click)="setModalProveedor()"
-                  data-toggle="modal" data-target="#modalProveedor"></button>
-                <input pInputText id="proveedor" [(ngModel)]="nuevoIngreso.proveedor"
-                  [ngModelOptions]="{standalone: true}" [attr.disabled]="true" required placeholder="Razon Social"
-                  class="w-full" />
-              </p-inputgroup>
-              <div *ngIf="submitted && !nuevoIngreso.proveedor" class="text-danger">
-                El proveedor es obligatorio.
+            <!-- <div class="col-md-4">
+              <label for="cerrado">Cerrado:</label>
+              <p-floatlabel variant="on">
+                <p-select [options]="[{label: 'SI', value: 'SI'}]" [(ngModel)]="nuevoIngreso.cerrado"
+                  [ngModelOptions]="{standalone: true}" class="w-full" [disabled]="true" inputId="cerrado"></p-select>
+                <label for="cerrado">Cerrado:<span style="color: red">*</span></label>
+              </p-floatlabel>
+              <div *ngIf="submitted && !nuevoIngreso.cerrado" class="text-danger">
+                El campo Cerrado es obligatorio.
               </div>
-            </div>
+            </div> -->
+     
             <div class="col-md-4">
               <label for="proveedor">Regional:</label>
               <p-floatlabel variant="on">
@@ -111,27 +172,6 @@
               </div>
             </div>
             <div class="col-md-4">
-              <label for="estado">Estado:</label>
-              <p-floatlabel variant="on">
-                <input pInputText id="estado" [(ngModel)]="nuevoIngreso.estado" [disabled]="true"
-                  [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper required class="w-full" />
-                <label for="estado">Estado:</label>
-              </p-floatlabel>
-            </div>
-          </div>
-          <div class="row mb-4">
-            <div class="col-md-4">
-              <label for="cerrado">Cerrado:</label>
-              <p-floatlabel variant="on">
-                <p-select [options]="[{label: 'SI', value: 'SI'}]" [(ngModel)]="nuevoIngreso.cerrado"
-                  [ngModelOptions]="{standalone: true}" class="w-full" [disabled]="true" inputId="cerrado"></p-select>
-                <label for="cerrado">Cerrado:<span style="color: red">*</span></label>
-              </p-floatlabel>
-              <div *ngIf="submitted && !nuevoIngreso.cerrado" class="text-danger">
-                El campo Cerrado es obligatorio.
-              </div>
-            </div>
-            <div class="col-md-4">
               <label for="forma_pago">Forma de Pago</label>
               <select id="forma_pago" [(ngModel)]="nuevoIngreso.id_tipo_ingr_id" class="form-control w-full"
                 (change)="getTipoIngresoChange(nuevoIngreso.id_tipo_ingr_id)" [ngModelOptions]="{standalone: true}"
@@ -143,17 +183,13 @@
                 El campo Tipo de Ingreso es obligatorio.
               </div>
             </div>
-            <div class="col-md-4">
-              <label for="tipo_rubro">Tipo de Rubro o Servicio</label>
-              <select id="tipo_rubro" [(ngModel)]="nuevoIngreso.id_tipo_rubro" class="form-control w-full"
-                (change)="getTipoRubroChange(nuevoIngreso.id_tipo_rubro)" [ngModelOptions]="{standalone: true}"
-                [attr.disabled]="true">
-                <option [ngValue]="''" selected disabled>Tipo de Rubro o Servicio...</option>
-                <option *ngFor="let tipo of tipoRubros" [ngValue]="tipo.id_detalle_rubro">{{ tipo.servicio }}</option>
-              </select>
-              <div *ngIf="submitted && !nuevoIngreso.id_tipo_rubro" class="text-danger">
-                El campo Tipo de Rubro es obligatorio.
-              </div>
+              <div class="col-md-4">
+              <label for="estado">Estado:</label>
+              <p-floatlabel variant="on">
+                <input pInputText id="estado" [(ngModel)]="nuevoIngreso.estado" [disabled]="true"
+                  [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper required class="w-full" />
+                <label for="estado">Estado:</label>
+              </p-floatlabel>
             </div>
           </div>
           <div class="row mb-4">
@@ -277,11 +313,10 @@
             <div class="col-md-4">
               <label for="proveedor">Razón Social</label>
               <p-inputgroup class="w-full">
-                <button pButton type="button" label="Buscar" class="p-button-success" (click)="setModalProveedor()"
-                  data-toggle="modal" data-target="#modalProveedor"></button>
                 <input pInputText id="proveedor" [(ngModel)]="nuevoIngreso.proveedor"
-                  [ngModelOptions]="{standalone: true}" [attr.disabled]="true" required placeholder="Razón Social"
+                  [ngModelOptions]="{standalone: true}" [attr.disabled]="true" required placeholder="Razon Social"
                   class="w-full" />
+                <p-button type="button" icon="pi pi-search" severity="success" (click)="setModalProveedor()"></p-button>
               </p-inputgroup>
               <div *ngIf="submitted && !nuevoIngreso.proveedor" class="text-danger">
                 El proveedor es obligatorio.
@@ -290,15 +325,18 @@
             <div class="col-md-4">
               <label for="proveedor">Nro. Nit:</label>
               <p-floatlabel variant="on">
-                <input pInputText id="nit" [(ngModel)]="nuevoIngreso.nit" [ngModelOptions]="{standalone: true}"
-                  [attr.disabled]="true" appUpper required class="w-full" />
+                <p-inputgroup>
+                  <input pInputText id="nit" [(ngModel)]="nuevoIngreso.nit" [ngModelOptions]="{standalone: true}"
+                    [attr.disabled]="true" appUpper required class="w-full" (keyup.enter)="verifyNit()" />
+                  <p-button icon="pi pi-check" (click)="verifyNit()"></p-button>
+                </p-inputgroup>
                 <label for="nit">Nit:</label>
               </p-floatlabel>
               <div *ngIf="submitted && !nuevoIngreso.nit" class="text-danger">
                 La cuenta es obligatoria.
               </div>
             </div>
-            <div class="col-md-4">
+            <!-- <div class="col-md-4">
               <label for="proveedor">Cerrado:</label>
               <p-floatlabel variant="on">
                 <p-select [options]="[{label: 'SI', value: 'SI'}]" [(ngModel)]="nuevoIngreso.cerrado"
@@ -308,7 +346,7 @@
               <div *ngIf="submitted && !nuevoIngreso.cerrado" class="text-danger">
                 El campo Cerrado es obligatorio.
               </div>
-            </div>
+            </div> -->
           </div>
 
           <div class="row mb-4">
@@ -471,4 +509,13 @@
             <i class="fa" [ngClass]="{'fa-spin fa-spinner': isLoading, '': !isLoading}"></i>{{button}}</button>
         </div>
       </form>
+      <!-- Agrega este bloque debajo de tu formulario de registro de ingresos -->
+      <div *ngIf="pdfSrc && nuevoIngreso.op_tipoemision === 'factura'" class="card mt-5">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">Vista previa del PDF</h5>
+        </div>
+        <div class="card-body p-0" style="height: 200px;">
+          <iframe [src]="pdfSrc | safeUrl" width="100%" height="100%" frameborder="0"></iframe>
+        </div>
+      </div>
     </div>

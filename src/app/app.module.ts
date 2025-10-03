@@ -16,6 +16,18 @@ import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { providePrimeNG } from 'primeng/config';
 import material from '@primeng/themes/material'
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { AppConfigComponent } from './app.config.component';
+import { AppMainComponent } from './app.main.component';
+import { AppSideBarComponent } from './app.sidebar.component';
+import { AppTopbarComponent } from './app.topbar.component';
+import { AppMenuComponent } from './app.menu.component';
+import { AppFooterComponent } from './app.footer.component';
+import { AppSidebartabcontentComponent } from './app.sidebartabcontent.component';
+import { AppMenuitemComponent } from './app.menuitem.component';
+import { RadioButtonModule } from 'primeng/radiobutton';
+import { ButtonModule } from 'primeng/button';
+import { AppErrorComponent } from './features/ingresos/component/error/app.error.component';
+import { AppAccessdeniedComponent } from './features/ingresos/component/denegado/app.accessdenied.component';
 
 @NgModule({
   declarations: [
@@ -24,7 +36,20 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     MainHeaderComponent,
     MainSidebarComponent,
     ControlSidebarComponent,
-    LayoutComponent
+    LayoutComponent,
+    AppConfigComponent,
+    AppMainComponent,
+    AppSideBarComponent,
+    AppSideBarComponent,
+    AppTopbarComponent,
+    AppMenuComponent,
+    AppFooterComponent,
+    AppSidebartabcontentComponent,
+    AppMenuitemComponent,
+    AppErrorComponent,
+    AppAccessdeniedComponent,
+
+    
   ],
   imports: [
     BrowserModule,
@@ -32,7 +57,9 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     HttpClientModule,
     FormsModule,
     AppCommonModule,
-    BrowserAnimationsModule
+    BrowserAnimationsModule,
+    RadioButtonModule,
+    ButtonModule
   ],
   providers: [
     { provide: LocationStrategy, useClass: HashLocationStrategy },

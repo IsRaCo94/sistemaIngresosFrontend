@@ -9,4 +9,368 @@
   .bg-emision-documento {
     background-color: rgba(244, 245, 233, 0.49); /* light teal with transparency */
   }
-  
+  .checkmark {
+    color: green;
+    font-weight: bold;
+    font-size: 1.5em;
+    margin-left: 5px;
+    vertical-align: middle;
+  }
+
+/* Estilos mejorados y modernos para el componente create - Sin fuentes externas */
+
+.bg-emision-recibo {
+  background-color: rgba(235, 247, 249, 0.62);
+}
+
+.bg-emision-factura {
+  background-color: rgba(217, 244, 224, 0.58);
+}
+
+.bg-emision-documento {
+  background-color: rgba(244, 245, 233, 0.49);
+}
+
+.checkmark {
+  color: green;
+  font-weight: bold;
+  font-size: 1.5em;
+  margin-left: 5px;
+  vertical-align: middle;
+}
+
+/* Fuentes del sistema como fallback */
+.card {
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+}
+
+.card-header {
+  background: linear-gradient(135deg,  #4c854c 0%, #81bea1 100%);
+  border-radius: 15px 15px 0 0;
+  border: none;
+}
+
+.card-body {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 0 0 15px 15px;
+}
+
+/* Fondos sutiles para cada tipo de emisión */
+.bg-emision-recibo {
+  background: rgba(102, 126, 234, 0.05) !important;
+}
+
+.bg-emision-factura {
+  background: rgba(72, 187, 120, 0.05) !important;
+}
+
+.bg-emision-documento {
+  background: rgba(237, 137, 54, 0.05) !important;
+}
+
+/* Mejoras en labels */
+label {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+/* Inputs mejorados - MÁS GRANDES Y VISIBLES */
+.form-control, .p-inputtext, .p-inputnumber input, .p-datepicker input {
+  border-radius: 10px;
+  border: 2px solid #e1e8ed;
+  padding: 12px 16px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.95);
+  min-height: 48px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.form-control:focus, .p-inputtext:focus, .p-inputnumber input:focus, .p-datepicker input:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+  background: white;
+  transform: translateY(-1px);
+}
+
+/* Selects mejorados */
+.p-select, select.form-control {
+  border-radius: 10px;
+  border: 2px solid #e1e8ed;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: rgba(255, 255, 255, 0.95);
+  min-height: 48px;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.p-select:focus, select.form-control:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* Textarea mejorado */
+textarea.form-control {
+  border-radius: 10px;
+  border: 2px solid #e1e8ed;
+  resize: vertical;
+  background: rgba(255, 255, 255, 0.95);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  min-height: 120px;
+  padding: 12px 16px;
+  font-size: 0.95rem;
+}
+
+textarea.form-control:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* Botones mejorados */
+.btn {
+  border-radius: 10px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 600;
+  padding: 12px 24px;
+  transition: all 0.3s ease;
+  border: none;
+  font-size: 0.95rem;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* Grupos de botones mejorados */
+.btn-group .btn {
+  border-radius: 0;
+}
+
+.btn-group .btn:first-child {
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+}
+
+.btn-group .btn:last-child {
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+/* Secciones de formulario mejoradas */
+.form-section {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 15px;
+  padding: 30px;
+  margin-bottom: 25px;
+  border-left: 4px solid;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+/* Footer mejorado */
+.card-footer {
+  background: rgba(248, 249, 250, 0.9);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 25px 30px;
+  border-radius: 0 0 15px 15px;
+}
+
+/* Vista previa PDF mejorada */
+.pdf-preview-modern {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  margin-top: 30px;
+  overflow: hidden;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+}
+
+.pdf-header {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  padding: 20px 25px;
+}
+
+.pdf-container {
+  height: 400px;
+  padding: 20px;
+  background: #f8f9fa;
+}
+
+.pdf-container iframe {
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Checkbox mejorado */
+.p-checkbox {
+  margin-right: 10px;
+}
+
+.p-checkbox-box {
+  border-radius: 6px;
+  border: 2px solid #e1e8ed;
+}
+
+.p-checkbox-box.p-highlight {
+  background: #667eea;
+  border-color: #667eea;
+}
+
+/* PrimeNG componentes específicos */
+:host ::ng-deep .p-inputgroup .p-button {
+  border-radius: 0 10px 10px 0;
+}
+
+:host ::ng-deep .p-inputgroup .p-inputtext {
+  border-radius: 10px 0 0 10px;
+}
+
+:host ::ng-deep .p-datepicker {
+  border-radius: 10px;
+}
+
+:host ::ng-deep .p-datepicker .p-datepicker-trigger {
+  background: transparent;
+  border: none;
+  color: #667eea;
+}
+
+:host ::ng-deep .p-select {
+  border-radius: 10px;
+}
+
+/* Selects mejorados específicamente para Forma de Pago y Tipo de Rubro */
+select#forma_pago,
+select#forma_pago_select,
+select#tipo_rubro,
+select#tipo_rubro_select {
+  min-height: 50px !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  border: 2px solid #e1e8ed !important;
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 249, 250, 0.9) 100%) !important;
+  padding: 14px 18px !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1) !important;
+}
+
+select#forma_pago:focus,
+select#forma_pago_select:focus,
+select#tipo_rubro:focus,
+select#tipo_rubro_select:focus {
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25), 0 6px 20px rgba(102, 126, 234, 0.15) !important;
+  background: white !important;
+  transform: translateY(-2px) !important;
+}
+
+select#forma_pago:hover,
+select#forma_pago_select:hover,
+select#tipo_rubro:hover,
+select#tipo_rubro_select:hover {
+  border-color: #adb5bd !important;
+  background: white !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Options dentro de los selects mejoradas */
+select#forma_pago option,
+select#forma_pago_select option,
+select#tipo_rubro option,
+select#tipo_rubro_select option {
+  padding: 12px 18px !important;
+  font-size: 0.95rem !important;
+  background: white !important;
+  color: #495057 !important;
+  border-bottom: 1px solid #f8f9fa !important;
+}
+
+/* Placeholder options */
+select#forma_pago option:disabled,
+select#forma_pago_select option:disabled,
+select#tipo_rubro option:disabled,
+select#tipo_rubro_select option:disabled {
+  color: #6c757d !important;
+  font-style: italic !important;
+  background: #f8f9fa !important;
+}
+
+/* Responsive mejorado */
+@media (max-width: 768px) {
+  .card {
+    border-radius: 12px;
+  }
+
+  .form-section {
+    padding: 20px 15px;
+  }
+
+  .card-footer {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Animaciones sutiles */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-section {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.card {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* Mejoras en validación */
+.text-danger {
+  font-size: 0.85rem;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* Efectos hover sutiles */
+.form-control:hover, .p-inputtext:hover, .p-inputnumber input:hover {
+  border-color: #adb5bd;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+/* Estilos para elementos PrimeNG específicos */
+:host ::ng-deep .p-button {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+:host ::ng-deep .p-inputnumber input {
+  text-align: left;
+}
+:host ::ng-deep #monto,
+:host ::ng-deep #importe_total {
+  background-color: #cff0df8d !important;
+}

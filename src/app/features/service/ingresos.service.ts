@@ -47,7 +47,7 @@ export class IngresosService {
     const url = `${this.apiUrl}/ingreso-tipo`
     return this.http.get<any>(url);
   }
-  getLastNumDeposito(): Observable<number> {
+  getLastNumRecibo(): Observable<number> {
     return this.http.get<number>(`${this.apiUrl}/ingresos/`);
   }
   getLastNumFactura(): Observable<number> {

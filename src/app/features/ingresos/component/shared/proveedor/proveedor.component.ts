@@ -91,13 +91,30 @@ export class ProveedorComponent implements OnInit {
   //     });
      
   // }
-  obtenerProveedores() {
-  this.loading = true;
-  this.empresaService.getAllEmpresas()
-    .subscribe((res: any) => {
-      this.proveedores = res.empresas as empresa[];  // <-- typed assignment here
-      this.loading = false;
-    });    
-}
-    
+//   obtenerProveedores() {
+//   this.loading = true;
+//   this.empresaService.getAllEmpresas()
+//     .subscribe((res: any) => {
+//       this.proveedores = res.empresas as empresa[];  // <-- typed assignment here
+//       this.loading = false;
+//     });    
+// }
+    obtenerProveedores() {
+    this.loading = true;
+    this.empresaService.getAllEmpresas()
+      .subscribe((res: any) => {
+        let empresas = res.empresas as empresa[];
+
+        // Filter duplicates by company name (EMP_NOM)
+        const uniqueEmpresasMap = new Map<string, empresa>();
+        empresas.forEach(emp => {
+          if (!uniqueEmpresasMap.has(emp.EMP_NOM)) {
+            uniqueEmpresasMap.set(emp.EMP_NOM, emp);
+          }
+        });
+        this.proveedores = Array.from(uniqueEmpresasMap.values());
+
+        this.loading = false;
+      });
+  }  
 }

@@ -13,12 +13,14 @@ import { persona } from '../../../../models/persona';
 import * as XLSX from 'xlsx';
 import { forkJoin } from 'rxjs';
 import { data } from 'jquery';
-
+import { SafeUrlPipe } from '../../../../../shared/pipes/safe-url.pipe';
+import { EmpresaService } from '../../../../service/empresa.service';
 @Component({
   selector: 'app-create',
   standalone: false,
   templateUrl: './create.component.html',
-  styleUrl: './create.component.css'
+  styleUrl: './create.component.css',
+
 })
 export class CreateComponent implements OnInit {
   public loading: boolean = false;
@@ -34,6 +36,7 @@ export class CreateComponent implements OnInit {
   isCardCollapsed: boolean = false;
   excelFileToImport: File | null = null;
   excelPreview: any[] = [];
+  pdfSrc: string | null = null;  // Agrega esta propiedad
   constructor(
     private _formBuilder: FormBuilder,
     private changeDetector: ChangeDetectorRef,
@@ -41,6 +44,7 @@ export class CreateComponent implements OnInit {
     private tipoingresoService: IngresosService,
     private rubrosService: DetalleRubrosService,
     private _location: Location,
+    private empresaService: EmpresaService,
 
   ) {
 
@@ -89,7 +93,7 @@ export class CreateComponent implements OnInit {
     this.iniIngreso()
     this.getTipoRubro()
     this.getTipoIngreso()
-    // this.getNextNumDeposito();
+    this.getNextNumRecibo();
     this.calculateCostoTotal();
     // this.getNextNumFactura();
     this.onOpTipoEmisionChange(this.nuevoIngreso.op_tipoemision);
@@ -108,39 +112,259 @@ export class CreateComponent implements OnInit {
         });
         return;
       }
+      this.pdfSrc = URL.createObjectURL(file);
       const formData = new FormData();
       formData.append('file', file);
       this.ingresoService.extractPdfData(formData).subscribe((data: any) => {
         console.log('Datos recibidos del PDF:', data);
         if (this.nuevoIngreso.tipo_emision === 'FACTURA') {
           this.nuevoIngreso.proveedor = data.proveedor;
-          // Remove prefix if present
           const prefix = 'PRECIO Unidad (Servicios) ';
           let detalle = data.detalle || '';
           if (detalle.startsWith(prefix)) {
             detalle = detalle.substring(prefix.length);
           }
-          this.nuevoIngreso.detalle = detalle; // Assign cleaned string here
+          this.nuevoIngreso.detalle = detalle;
           this.nuevoIngreso.monto = data.monto;
           this.nuevoIngreso.num_factura = data.num_factura;
           this.nuevoIngreso.nit = data.nit;
-          const fechaISO = data.fecha; // "2025-08-29T00:00:00.000Z"
+          const fechaISO = data.fecha;
           const fechaLocal = new Date(fechaISO);
           const fechaCorregida = new Date(fechaLocal.getTime() + fechaLocal.getTimezoneOffset() * 60000);
           this.nuevoIngreso.fecha = fechaCorregida;
           this.calculateCostoTotal2();
-
-          Swal.fire({
-            icon: 'success',
-            title: 'Importación exitosa',
-            text: 'El PDF fue importado y los datos se completaron correctamente.',
-            confirmButtonText: 'Aceptar'
+  
+          this.empresaService.getAllEmpresas().subscribe(response => {
+            const empresasArray = response.empresas;
+            const matchedEmpresa = empresasArray.find((emp: empresa) =>
+              String(emp.EMP_NIT) === String(this.nuevoIngreso.nit)
+            );
+            if (matchedEmpresa) {
+              this.nuevoIngreso.cod_prove = matchedEmpresa.EMP_COD;
+              Swal.fire({
+                icon: 'success',
+                title: 'Importación exitosa',
+                text: 'El PDF fue importado y los datos se completaron correctamente.',
+                confirmButtonText: 'Aceptar'
+              });
+            } else {
+              // Verificar también en getEmpresa() antes de preguntar al usuario
+              this.empresaService.getEmpresa().subscribe(empresasResponse => {
+                const empresasArray2 = empresasResponse.empresas || empresasResponse;
+                const matchedEmpresa2 = empresasArray2.find((emp: empresa) =>
+                  String(emp.EMP_NIT || emp.nit) === String(this.nuevoIngreso.nit)
+                );
+                
+                if (matchedEmpresa2) {
+                  this.nuevoIngreso.cod_prove = matchedEmpresa2.EMP_COD || matchedEmpresa2.codigo;
+                  Swal.fire({
+                    icon: 'success',
+                    title: 'Importación exitosa',
+                    text: 'El PDF fue importado y los datos se completaron correctamente.',
+                    confirmButtonText: 'Aceptar'
+                  });
+                } else {
+                  Swal.fire({
+                    icon: 'question',
+                    title: 'Proveedor no encontrado',
+                    text: 'El proveedor con este NIT no existe. ¿Desea agregarlo para futuras verificaciones?',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, agregar',
+                    cancelButtonText: 'No, cancelar'
+                  }).then((result) => {
+                    if (result.isConfirmed) {
+                      const newEmpresa: empresa = {
+                        id_empresa: 0,
+                        codigo: '',
+                        nombre: this.nuevoIngreso.proveedor,
+                        nit: this.nuevoIngreso.nit,
+                        baja: false,
+                        EMP_NIT: String(this.nuevoIngreso.nit),
+                        EMP_NOM: this.nuevoIngreso.proveedor,
+                        EMP_COD: '',
+                        EMP_NPATRONAL: '',
+                        TIPO: ''
+                      };
+  
+                      this.empresaService.getEmpresa().subscribe(empresas => {
+                        const empresasArray3 = empresas.empresas || empresas;
+                        const exists = empresasArray3.some((emp: empresa) =>
+                          String(emp.EMP_NIT || emp.nit) === String(this.nuevoIngreso.nit)
+                        );
+                        if (exists) {
+                          Swal.fire('Información', 'El proveedor ya existe en la base de datos.', 'info');
+                        } else {
+                          this.empresaService.postEmpresa(newEmpresa).subscribe({
+                            next: (response: any) => {
+                              const createdEmpresa = response as empresa;
+                              this.nuevoIngreso.cod_prove = createdEmpresa.codigo || createdEmpresa.EMP_COD;
+                              Swal.fire('Proveedor agregado', 'El proveedor fue agregado para futuras verificaciones.', 'success');
+                            },
+                            error: (err) => {
+                              console.error('Error agregando proveedor:', err);
+                              Swal.fire('Error', 'No se pudo agregar el proveedor.', 'error');
+                            }
+                          });
+                        }
+                      });
+                    }
+                  });
+                }
+              });
+            }
           });
         }
       });
     }
   }
+  verifyNit() {
+    console.log('verifyNit llamado, nit:', this.nuevoIngreso.nit, 'proveedor:', this.nuevoIngreso.proveedor);
+    if (!this.nuevoIngreso.nit && !this.nuevoIngreso.proveedor) {
+      Swal.fire('Error', 'El NIT y el proveedor están vacíos.', 'error');
+      return;
+    }
+  
+    forkJoin({
+      allEmpresasResponse: this.empresaService.getAllEmpresas(),
+      empresasResponse: this.empresaService.getEmpresa()
+    }).subscribe({
+      next: ({ allEmpresasResponse, empresasResponse }) => {
+        // Extract arrays from responses, adjust if needed
+        const allEmpresasArray = allEmpresasResponse.empresas ?? allEmpresasResponse;
+        const empresasArray = empresasResponse.empresas ?? empresasResponse;
+  
+        // Merge both arrays
+        const combinedEmpresas = [...allEmpresasArray, ...empresasArray];
+  
+        // Remove duplicates by NIT (optional)
+        const uniqueEmpresasMap = new Map<string, empresa>();
+        combinedEmpresas.forEach(emp => {
+          uniqueEmpresasMap.set(String(emp.EMP_NIT ?? emp.nit), emp);
+        });
+        const uniqueEmpresas = Array.from(uniqueEmpresasMap.values());
+  
+        // Check if NIT exists
+        const match = uniqueEmpresas.find((emp: empresa) =>
+          this.nuevoIngreso.nit && String(emp.EMP_NIT ?? emp.nit) === String(this.nuevoIngreso.nit)
+        );
+  
+        if (match) {
+          Swal.fire('Éxito', 'El Nit y el Proveedor existen.', 'success');
+        } else {
+          Swal.fire('Información', 'El Nit y el Proveedor no existen.', 'info');
+        }
+      },
+      error: (error) => {
+        console.error('Error al obtener empresas', error);
+        Swal.fire('Error', 'Error al verificar el NIT y proveedor.', 'error');
+      }
+    });
+  }
 
+  checkAndAddCarnetCI() {
+    if (this.nuevoIngreso.servicio !== 'VENTA DE CARNETS DE ASEGURADO') {
+      return;
+    }
+  
+    // Si el campo CI está vacío (0 o null/undefined), mostrar Swal para ingresar CI
+    if (!this.nuevoIngreso.nit || this.nuevoIngreso.nit === 0) {
+      Swal.fire({
+        title: 'Ingrese su CI',
+        input: 'text',
+        inputLabel: 'CI',
+        inputPlaceholder: 'Ingrese su número de CI',
+        showCancelButton: true,
+        inputValidator: (value) => {
+          if (!value) {
+            return 'El CI es obligatorio';
+          }
+          return null;
+        }
+      }).then(ciResult => {
+        if (ciResult.isConfirmed) {
+          const ci = ciResult.value.trim();
+          this.processCarnetCI(ci);
+        }
+      });
+    } else {
+      // Si ya hay un CI, proceder directamente a verificar
+      this.processCarnetCI(this.nuevoIngreso.nit.toString());
+    }
+  }
+  processCarnetCI(ci: string) {
+    this.empresaService.getEmpresa().subscribe(response => {
+      const empresasArray = response.empresas ?? response;
+      const existingEmpresa = empresasArray.find((emp: empresa) =>
+        String(emp.nit || emp.EMP_NIT) === ci
+      );
+  
+      if (existingEmpresa) {
+        // Fill inputs with existing data silently
+        this.nuevoIngreso.nit = Number(existingEmpresa.nit || existingEmpresa.EMP_NIT || 0);
+        this.nuevoIngreso.proveedor = existingEmpresa.nombre || existingEmpresa.EMP_NOM;
+        this.nuevoIngreso.cod_prove = existingEmpresa.codigo || existingEmpresa.EMP_COD;
+        // No mostrar ningún mensaje cuando el CI ya existe
+        console.log('CI existente encontrado y datos cargados automáticamente');
+      } else {
+        // Prompt for name to add new empresa
+        Swal.fire({
+          title: 'Ingrese su Nombre',
+          input: 'text',
+          inputLabel: 'Nombre',
+          inputPlaceholder: 'Ingrese su nombre completo',
+          showCancelButton: true,
+          inputValidator: (value) => {
+            if (!value) {
+              return 'El nombre es obligatorio';
+            }
+            return null;
+          }
+        }).then(nameResult => {
+          if (nameResult.isConfirmed) {
+            const nombre = nameResult.value.trim().toUpperCase();
+  
+            Swal.fire({
+              title: 'CI no encontrado',
+              text: 'El CI no existe. ¿Desea agregarlo?',
+              icon: 'question',
+              showCancelButton: true,
+              confirmButtonText: 'Sí, agregar',
+              cancelButtonText: 'No, cancelar'
+            }).then(confirmResult => {
+              if (confirmResult.isConfirmed) {
+                const newEmpresa: empresa = {
+                  id_empresa: 0,
+                  codigo: '',
+                  nombre: nombre,
+                  nit: Number(ci),
+                  baja: false,
+                  EMP_NIT: ci,
+                  EMP_NOM: nombre,
+                  EMP_COD: '',
+                  EMP_NPATRONAL: '',
+                  TIPO: ''
+                };
+  
+                this.empresaService.postEmpresa(newEmpresa).subscribe({
+                  next: (response: any) => {
+                    const createdEmpresa = response as empresa;
+                    this.nuevoIngreso.cod_prove = createdEmpresa.codigo || createdEmpresa.EMP_COD;
+                    this.nuevoIngreso.nit = Number(ci);
+                    this.nuevoIngreso.proveedor = nombre;
+                    Swal.fire('Proveedor agregado', 'El CI y nombre fueron agregados correctamente.', 'success');
+                  },
+                  error: (err) => {
+                    console.error('Error agregando CI:', err);
+                    Swal.fire('Error', 'No se pudo agregar el CI.', 'error');
+                  }
+                });
+              }
+            });
+          }
+        });
+      }
+    });
+  }
   onFileChange(evt: any) {
     const file = evt.target.files[0];
     if (!file) {
@@ -231,6 +455,120 @@ export class CreateComponent implements OnInit {
 
   }
 
+  onFileChangeRecibo(evt: any) {
+    const file = evt.target.files[0];
+    if (!file) {
+      Swal.fire('Error', 'Debe seleccionar un archivo.', 'error');
+      return;
+    }
+  
+    // Validar extensión de archivo
+    const validExtensions = ['.xlsx', '.xls'];
+    const fileName = file.name.toLowerCase();
+    if (!validExtensions.some(ext => fileName.endsWith(ext))) {
+      Swal.fire('Error', 'Solo se permiten archivos de Excel (.xlsx, .xls).', 'error');
+      return;
+    }
+  
+    this.excelFileToImport = file;
+  
+    this.getNextNumRecibo().then(() => {
+      const startingNumRecibo = this.nuevoIngreso.num_recibo || 1;
+  
+      const reader: FileReader = new FileReader();
+      reader.onload = (e: any) => {
+        const bstr: string = e.target.result;
+        const wb: XLSX.WorkBook = XLSX.read(bstr, { type: 'binary' });
+        const wsname: string = wb.SheetNames[0];
+        const ws: XLSX.WorkSheet = wb.Sheets[wsname];
+        const data: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+  
+        // Validar encabezados
+        const headers = data[0] || [];
+        const expectedHeaders = ['Fecha', 'Nro. Comprob.', 'Descripción del Movimiento', 'Importe a Conciliar'];
+        const normalize = (str: string) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toUpperCase();
+        const headersValid = expectedHeaders.every((h, i) => normalize(headers[i] || '') === normalize(h));
+  
+        if (!headersValid) {
+          Swal.fire('Error', 'El archivo debe tener las columnas: ' + expectedHeaders.join(', '), 'error');
+          return;
+        }
+  
+        // Validar que haya al menos un dato
+        if (data.length <= 1) {
+          Swal.fire('Error', 'El archivo no contiene datos para importar.', 'error');
+          return;
+        }
+  
+        // Mapear datos y guardar directamente en la base de datos
+        const saveObservables = data.slice(1).map((row: any[], index: number) => {
+          const ingresoToSave = new ingresos();
+  
+          // Parse date from 'Fecha' column (row[0])
+          if (row[0]) {
+            if (typeof row[0] === 'string') {
+              const parts = row[0].split('/');
+              if (parts.length === 3) {
+                const day = parseInt(parts[0], 10);
+                const month = parseInt(parts[1], 10) - 1; // JS months are 0-based
+                const year = parseInt(parts[2], 10);
+                ingresoToSave.fecha = new Date(year, month, day);
+              } else {
+                ingresoToSave.fecha = new Date(row[0]);
+              }
+            } else if (row[0] instanceof Date) {
+              ingresoToSave.fecha = row[0];
+            } else {
+              ingresoToSave.fecha = new Date(row[0]);
+            }
+          } else {
+            const fechaStr = this.nuevoIngreso.fecha ?
+            new Date(this.nuevoIngreso.fecha).toLocaleDateString('es-ES') : '';
+            ingresoToSave.fecha = new Date(fechaStr);
+          }
+  
+          ingresoToSave.num_depo = row[1] ?? '';
+          ingresoToSave.detalle = row[2] ?? '';
+  
+          // Parse monto from 'Importe a Conciliar' column (row[3])
+          let montoValue = row[3];
+          if (typeof montoValue === 'string') {
+            montoValue = montoValue.replace(',', '.');
+          }
+          ingresoToSave.monto = parseFloat(montoValue) || 0;
+          ingresoToSave.importe_total = ingresoToSave.monto;
+  
+          // Assign incremented num_recibo starting from startingNumRecibo
+          ingresoToSave.num_recibo = startingNumRecibo + index;
+  
+          // Set other required fields with defaults or from your component state
+          ingresoToSave.estado = 'CONSOLIDADO';
+          ingresoToSave.cerrado = 'SI';
+          ingresoToSave.fecha_reg = new Date();
+          ingresoToSave.cuenta = '1-45990921';
+          ingresoToSave.tipo_emision = 'RECIBO';
+          ingresoToSave.num_factura = 0;
+          ingresoToSave.nit = 0;
+  
+          // You can set additional fields if needed here
+  
+          return this.ingresoService.postIngresos(ingresoToSave);
+        });
+  
+        forkJoin(saveObservables).subscribe({
+          next: () => {
+            Swal.fire('Éxito', 'Todos los registros fueron guardados correctamente.', 'success');
+            this.goBack();
+          },
+          error: (err) => {
+            Swal.fire('Error', 'Ocurrió un error al guardar los registros.', 'error');
+            console.error(err);
+          }
+        });
+      };
+      reader.readAsBinaryString(file);
+    });
+  }
   iniIngreso() {
 
     this.nuevoIngreso.lugar
@@ -250,6 +588,8 @@ export class CreateComponent implements OnInit {
     this.nuevoIngreso.id_tipo_rubro = '';
     this.nuevoIngreso.op_tipoemision;
     this.nuevoIngreso.importe_total;
+    this.nuevoIngreso.num_form = 0;
+    this.nuevoIngreso.nit = 0;
 
 
     //this.nuevoIngreso.detalle = '';
@@ -363,6 +703,7 @@ export class CreateComponent implements OnInit {
       this.nuevoIngreso.servicio = tipos.servicio;
       this.nuevoIngreso.num_rubro = tipos.num_rubro;
       this.updateDetalle();
+     // this.checkAndAddCarnetCI();
       // <-- Add this line to update detalle on rubro change
     } else {
       this.nuevoIngreso.id_tipo_rubro = '';
@@ -373,17 +714,21 @@ export class CreateComponent implements OnInit {
 
   }
 
-
-  getNextNumDeposito() {
-    this.ingresoService.getLastNumDeposito().subscribe({
-      next: (lastNum: number) => {
-        // Start from 1000 if lastNum is less than 1000
-        this.nuevoIngreso.num_recibo = lastNum >= 1000 ? lastNum++ : 1000;
-      },
-      error: (error) => {
-        console.error('Error fetching last num_depo:', error);
-        this.nuevoIngreso.num_recibo = 1000; // fallback start from 1000
-      }
+  getNextNumRecibo(): Promise<void> {
+    return new Promise((resolve) => {
+      this.ingresoService.getLastNumRecibo().subscribe({
+        next: (lastNum: number) => {
+          console.log('Raw last receipt number from backend:', lastNum);
+          this.nuevoIngreso.num_recibo = (lastNum && lastNum > 0) ? lastNum + 1 : 1;
+          console.log('Assigned next receipt number:', this.nuevoIngreso.num_recibo);
+          resolve();
+        },
+        error: (error) => {
+          console.error('Error fetching last receipt number:', error);
+          this.nuevoIngreso.num_recibo = 1; // fallback start from 1
+          resolve();
+        }
+      });
     });
   }
   getNextNumFactura() {
@@ -521,6 +866,7 @@ export class CreateComponent implements OnInit {
       this.nuevoIngreso.num_factura = 0;
       this.nuevoIngreso.cerrado = 'SI';
       this.nuevoIngreso.tipo_emision = 'RECIBO';
+      this.getNextNumRecibo();
     }
     else if (this.nuevoIngreso.op_tipoemision === 'documento') {
       this.nuevoIngreso.num_depo;
@@ -578,26 +924,67 @@ export class CreateComponent implements OnInit {
           // Set tipo_ingres and id_tipo_ingr_id automatically if METODO_PAGO is "DEPOSITO O TRANSFERENCIA"
           if (aporte.METODO_PAGO) {
             const metodoPagoUpper = aporte.METODO_PAGO.toUpperCase();
-            if (metodoPagoUpper === 'DEPOSITO O TRANSFERENCIA') {
-              const tipoIngresoMatch = this.tipoIngresos.find(ti => ti.tipo_ingr.toUpperCase() === 'DEPOSITO A LA CUENTA');
-              if (tipoIngresoMatch) {
-                this.nuevoIngreso.tipo_ingres = tipoIngresoMatch.tipo_ingr;
-                this.nuevoIngreso.id_tipo_ingr_id = tipoIngresoMatch.id_tipo_ingr;
-              } else {
-                this.nuevoIngreso.tipo_ingres = 'DEPOSITO A LA CUENTA';
-                this.nuevoIngreso.id_tipo_ingr_id = '';
-              }
-            } else if (metodoPagoUpper === 'SIGEP') {
-              const tipoIngresoMatch = this.tipoIngresos.find(ti => ti.tipo_ingr.toUpperCase() === 'TRASPASO TGN');
-              if (tipoIngresoMatch) {
-                this.nuevoIngreso.tipo_ingres = tipoIngresoMatch.tipo_ingr;
-                this.nuevoIngreso.id_tipo_ingr_id = tipoIngresoMatch.id_tipo_ingr;
-              } else {
-                this.nuevoIngreso.tipo_ingres = 'TRASPASO TGN';
-                this.nuevoIngreso.id_tipo_ingr_id = '';
+            switch (metodoPagoUpper) {
+              case 'DEPOSITO O TRANSFERENCIA':
+                const tipoIngresoMatchDeposito = this.tipoIngresos.find(ti => ti.tipo_ingr.toUpperCase() === 'DEPOSITO A LA CUENTA');
+                if (tipoIngresoMatchDeposito) {
+                  this.nuevoIngreso.tipo_ingres = tipoIngresoMatchDeposito.tipo_ingr;
+                  this.nuevoIngreso.id_tipo_ingr_id = tipoIngresoMatchDeposito.id_tipo_ingr;
+                } else {
+                  this.nuevoIngreso.tipo_ingres = 'DEPOSITO A LA CUENTA';
+                  this.nuevoIngreso.id_tipo_ingr_id = '';
+                }
+                break;
+              case 'SIGEP':
+                const tipoIngresoMatchSigep = this.tipoIngresos.find(ti => ti.tipo_ingr.toUpperCase() === 'TRASPASO TGN');
+                if (tipoIngresoMatchSigep) {
+                  this.nuevoIngreso.tipo_ingres = tipoIngresoMatchSigep.tipo_ingr;
+                  this.nuevoIngreso.id_tipo_ingr_id = tipoIngresoMatchSigep.id_tipo_ingr;
+                } else {
+                  this.nuevoIngreso.tipo_ingres = 'TRASPASO TGN';
+                  this.nuevoIngreso.id_tipo_ingr_id = '';
+                }
+                break;
+            }
+            if (aporte.TIPO_EMPRESA) {
+              const metodoPagoUpper = aporte.TIPO_EMPRESA.toUpperCase();
+              switch (metodoPagoUpper) {
+                case 'AP':
+                  const tipoEmpresaMatchAp = this.tipoRubros.find(r => r.servicio === 'APORTES PATRONALES Y APORTES (PUBLICO)');
+                  if (tipoEmpresaMatchAp) {
+                    this.nuevoIngreso.id_tipo_rubro = tipoEmpresaMatchAp.id_detalle_rubro;
+                    this.nuevoIngreso.servicio = tipoEmpresaMatchAp.servicio;
+                    this.nuevoIngreso.nombre = tipoEmpresaMatchAp.nombre;
+                    this.nuevoIngreso.num_rubro = tipoEmpresaMatchAp.num_rubro;
+                    this.updateDetalle();
+                  } else {
+                    // If no matching rubro found, clear or set defaults as needed
+                    this.nuevoIngreso.id_tipo_rubro = '';
+                    this.nuevoIngreso.servicio = '';
+                    this.nuevoIngreso.nombre = '';
+                    this.nuevoIngreso.num_rubro = '';
+                  }
+                  break;
+                case 'AV':
+                  const tipoEmpresaMatchAv = this.tipoRubros.find(r => r.servicio === 'APORTES PATRONALES Y APORTES (PRIVADO)');
+                  if (tipoEmpresaMatchAv) {
+                    this.nuevoIngreso.id_tipo_rubro = tipoEmpresaMatchAv.id_detalle_rubro;
+                    this.nuevoIngreso.servicio = tipoEmpresaMatchAv.servicio;
+                    this.nuevoIngreso.nombre = tipoEmpresaMatchAv.nombre;
+                    this.nuevoIngreso.num_rubro = tipoEmpresaMatchAv.num_rubro;
+                    this.updateDetalle();
+                  } else {
+                    // If no matching rubro found, clear or set defaults as needed
+                    this.nuevoIngreso.id_tipo_rubro = '';
+                    this.nuevoIngreso.servicio = '';
+                    this.nuevoIngreso.nombre = '';
+                    this.nuevoIngreso.num_rubro = '';
+                  }
+                  break;
               }
             }
           }
+
 
           // Show success Swal after loading data
           Swal.fire('Datos cargados', 'Los datos del aporte fueron cargados correctamente.', 'success');
@@ -612,7 +999,30 @@ export class CreateComponent implements OnInit {
       }
     });
   }
+  isExcludedRubro(id_tipo_rubro: any): boolean {
+    const serviciosExcluidos = [
+      'VENTA DE CARNETS DE ASEGURADO',
+      'FORMULARIOS DE NOVEDADES',
+      'VENTA DE EXAMENES POST OCUPACIONALES',
+      'VENTA DE EXAMENES PRE OCUPACIONALES',
+      'MULTAS POR INCUMPLIMIENTOS A CONTRATOS',
+      'RECAUDACION POR INTERNADO ROTATORIO',
+      'VENTA DE BIDONES',
+      'MULTAS POR BAJA DEL ASEGURADO',
 
+
+    ];
+
+    const rubro = this.tipoRubros.find(r => r.id_detalle_rubro === id_tipo_rubro);
+    if (!rubro) {
+      return false;
+    }
+    return serviciosExcluidos.includes(rubro.servicio);
+  }
+  isVentaDeCarnets(id_tipo_rubro: any): boolean {
+    const rubro = this.tipoRubros.find(r => r.id_detalle_rubro === id_tipo_rubro);
+    return rubro?.servicio === 'VENTA DE CARNETS DE ASEGURADO';
+  }
   // guardarRegistro() {
 
   //   switch (this.nuevoIngreso.op_tipoemision) {
@@ -774,6 +1184,7 @@ export class CreateComponent implements OnInit {
         case 'recibo':
         default:
           this.nuevoIngreso.num_factura = 0;
+          this.getNextNumRecibo();  // Esperar a que se obtenga y asigne el número
           this.nuevoIngreso.tipo_emision = 'RECIBO';
           break;
       }

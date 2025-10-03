@@ -72,7 +72,7 @@ cargarRegistros() {
       next: (res: any) => {
         this.isLoading = false;
         this.button = 'Guardar';
-        Swal.fire('Registro Exitoso', res.message || 'El ingreso se actualizó correctamente.', 'success');
+        Swal.fire('Registro Exitoso', res.message || 'El registro se actualizó correctamente.', 'success');
         this.goBack(); 
       },
       error: (error: HttpErrorResponse) => {

@@ -13,6 +13,7 @@ import { DetalleRubrosService } from '../../../../service/detalle-rubros.service
 import { persona } from '../../../../models/persona';
 import * as XLSX from 'xlsx';
 import { forkJoin } from 'rxjs';
+import { EmpresaService } from '../../../../service/empresa.service';
 
 @Component({
   selector: 'app-edit',
@@ -33,6 +34,7 @@ export class EditComponent implements OnInit {
   excelPreview: any[] = [];
 showAmortizacion: boolean = false;
   showDemasia: boolean = false;
+  pdfSrc: string | null = null;  // Agrega esta propiedad
   constructor(
     private _formBuilder: FormBuilder,
     private changeDetector: ChangeDetectorRef,
@@ -41,6 +43,7 @@ showAmortizacion: boolean = false;
     private rutaActiva: ActivatedRoute,
     private tipoingresoService: IngresosService,
     private rubrosService: DetalleRubrosService,
+    private empresaService: EmpresaService,
   ) { }
 
 
@@ -82,7 +85,8 @@ showAmortizacion: boolean = false;
     this.iniIngreso()
     this.getTipoRubro()
     this.calculateCostoTotal();
-    this.calculateCostoTotal2();
+    this.onOpTipoEmisionChange(this.actualizarIngreso.op_tipoemision);
+    //this.calculateCostoTotal2();
 
     // No llamar aquí: resetea campos ya cargados al editar
   }
@@ -124,6 +128,7 @@ showAmortizacion: boolean = false;
   //       });
   //     });
   // }
+  
   cargarRegistros() {
     this.ingresoService.getIngresosUno(this.rutaActiva.snapshot.params['id_ingresos'])
       .subscribe((ingresos: any) => {
@@ -269,8 +274,8 @@ showAmortizacion: boolean = false;
     console.log('recibo', this.actualizarIngreso.num_rubro);
 
   }
-  getNextNumDeposito() {
-    this.ingresoService.getLastNumDeposito().subscribe({
+  getNextNumRecibo() {
+    this.ingresoService.getLastNumRecibo().subscribe({
       next: (lastNum: number) => {
         // Start from 1000 if lastNum is less than 1000
         this.actualizarIngreso.num_recibo = lastNum >= 1000 ? lastNum++ : 1000;
@@ -315,36 +320,258 @@ showAmortizacion: boolean = false;
         });
         return;
       }
+      this.pdfSrc = URL.createObjectURL(file);
       const formData = new FormData();
       formData.append('file', file);
       this.ingresoService.extractPdfData(formData).subscribe((data: any) => {
         console.log('Datos recibidos del PDF:', data);
         if (this.actualizarIngreso.tipo_emision === 'FACTURA') {
           this.actualizarIngreso.proveedor = data.proveedor;
-          // Remove prefix if present
           const prefix = 'PRECIO Unidad (Servicios) ';
           let detalle = data.detalle || '';
           if (detalle.startsWith(prefix)) {
             detalle = detalle.substring(prefix.length);
           }
-          this.actualizarIngreso.detalle = detalle; // Assign cleaned string here
+          this.actualizarIngreso.detalle = detalle;
           this.actualizarIngreso.monto = data.monto;
           this.actualizarIngreso.num_factura = data.num_factura;
           this.actualizarIngreso.nit = data.nit;
-          const fechaISO = data.fecha; // "2025-08-29T00:00:00.000Z"
+          const fechaISO = data.fecha;
           const fechaLocal = new Date(fechaISO);
           const fechaCorregida = new Date(fechaLocal.getTime() + fechaLocal.getTimezoneOffset() * 60000);
           this.actualizarIngreso.fecha = fechaCorregida;
           this.calculateCostoTotal2();
-          Swal.fire({
-            icon: 'success',
-            title: 'Importación exitosa',
-            text: 'El PDF fue importado y los datos se completaron correctamente.',
-            confirmButtonText: 'Aceptar'
+  
+          this.empresaService.getAllEmpresas().subscribe(response => {
+            const empresasArray = response.empresas;
+            const matchedEmpresa = empresasArray.find((emp: empresa) =>
+              String(emp.EMP_NIT) === String(this.actualizarIngreso.nit)
+            );
+            if (matchedEmpresa) {
+              this.actualizarIngreso.cod_prove = matchedEmpresa.EMP_COD;
+              Swal.fire({
+                icon: 'success',
+                title: 'Importación exitosa',
+                text: 'El PDF fue importado y los datos se completaron correctamente.',
+                confirmButtonText: 'Aceptar'
+              });
+            } else {
+              // Verificar también en getEmpresa() antes de preguntar al usuario
+              this.empresaService.getEmpresa().subscribe(empresasResponse => {
+                const empresasArray2 = empresasResponse.empresas || empresasResponse;
+                const matchedEmpresa2 = empresasArray2.find((emp: empresa) =>
+                  String(emp.EMP_NIT || emp.nit) === String(this.actualizarIngreso.nit)
+                );
+                
+                if (matchedEmpresa2) {
+                  this.actualizarIngreso.cod_prove = matchedEmpresa2.EMP_COD || matchedEmpresa2.codigo;
+                  Swal.fire({
+                    icon: 'success',
+                    title: 'Importación exitosa',
+                    text: 'El PDF fue importado y los datos se completaron correctamente.',
+                    confirmButtonText: 'Aceptar'
+                  });
+                } else {
+                  Swal.fire({
+                    icon: 'question',
+                    title: 'Proveedor no encontrado',
+                    text: 'El proveedor con este NIT no existe. ¿Desea agregarlo para futuras verificaciones?',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, agregar',
+                    cancelButtonText: 'No, cancelar'
+                  }).then((result) => {
+                    if (result.isConfirmed) {
+                      const newEmpresa: empresa = {
+                        id_empresa: 0,
+                        codigo: '',
+                        nombre: this.actualizarIngreso.proveedor,
+                        nit: this.actualizarIngreso.nit,
+                        baja: false,
+                        EMP_NIT: String(this.actualizarIngreso.nit),
+                        EMP_NOM: this.actualizarIngreso.proveedor,
+                        EMP_COD: '',
+                        EMP_NPATRONAL: '',
+                        TIPO: ''
+                      };
+  
+                      this.empresaService.getEmpresa().subscribe(empresas => {
+                        const empresasArray3 = empresas.empresas || empresas;
+                        const exists = empresasArray3.some((emp: empresa) =>
+                          String(emp.EMP_NIT || emp.nit) === String(this.actualizarIngreso.nit)
+                        );
+                        if (exists) {
+                          Swal.fire('Información', 'El proveedor ya existe en la base de datos.', 'info');
+                        } else {
+                          this.empresaService.postEmpresa(newEmpresa).subscribe({
+                            next: (response: any) => {
+                              const createdEmpresa = response as empresa;
+                              this.actualizarIngreso.cod_prove = createdEmpresa.codigo || createdEmpresa.EMP_COD;
+                              Swal.fire('Proveedor agregado', 'El proveedor fue agregado para futuras verificaciones.', 'success');
+                            },
+                            error: (err) => {
+                              console.error('Error agregando proveedor:', err);
+                              Swal.fire('Error', 'No se pudo agregar el proveedor.', 'error');
+                            }
+                          });
+                        }
+                      });
+                    }
+                  });
+                }
+              });
+            }
           });
         }
       });
-    }  
+    }
+  }
+  verifyNit() {
+    console.log('verifyNit llamado, nit:', this.actualizarIngreso.nit, 'proveedor:', this.actualizarIngreso.proveedor);
+    if (!this.actualizarIngreso.nit && !this.actualizarIngreso.proveedor) {
+      Swal.fire('Error', 'El NIT y el proveedor están vacíos.', 'error');
+      return;
+    }
+  
+    forkJoin({
+      allEmpresasResponse: this.empresaService.getAllEmpresas(),
+      empresasResponse: this.empresaService.getEmpresa()
+    }).subscribe({
+      next: ({ allEmpresasResponse, empresasResponse }) => {
+        // Extract arrays from responses, adjust if needed
+        const allEmpresasArray = allEmpresasResponse.empresas ?? allEmpresasResponse;
+        const empresasArray = empresasResponse.empresas ?? empresasResponse;
+  
+        // Merge both arrays
+        const combinedEmpresas = [...allEmpresasArray, ...empresasArray];
+  
+        // Remove duplicates by NIT (optional)
+        const uniqueEmpresasMap = new Map<string, empresa>();
+        combinedEmpresas.forEach(emp => {
+          uniqueEmpresasMap.set(String(emp.EMP_NIT ?? emp.nit), emp);
+        });
+        const uniqueEmpresas = Array.from(uniqueEmpresasMap.values());
+  
+        // Check if NIT exists
+        const match = uniqueEmpresas.find((emp: empresa) =>
+          this.actualizarIngreso.nit && String(emp.EMP_NIT ?? emp.nit) === String(this.actualizarIngreso.nit)
+        );
+  
+        if (match) {
+          Swal.fire('Éxito', 'El Nit y el Proveedor existen.', 'success');
+        } else {
+          Swal.fire('Información', 'El Nit y el Proveedor no existen.', 'info');
+        }
+      },
+      error: (error) => {
+        console.error('Error al obtener empresas', error);
+        Swal.fire('Error', 'Error al verificar el NIT y proveedor.', 'error');
+      }
+    });
+  }
+
+  checkAndAddCarnetCI() {
+    if (this.actualizarIngreso.servicio !== 'VENTA DE CARNETS DE ASEGURADO') {
+      return;
+    }
+  
+    // Si el campo CI está vacío (0 o null/undefined), mostrar Swal para ingresar CI
+    if (!this.actualizarIngreso.nit || this.actualizarIngreso.nit === 0) {
+      Swal.fire({
+        title: 'Ingrese su CI',
+        input: 'text',
+        inputLabel: 'CI',
+        inputPlaceholder: 'Ingrese su número de CI',
+        showCancelButton: true,
+        inputValidator: (value) => {
+          if (!value) {
+            return 'El CI es obligatorio';
+          }
+          return null;
+        }
+      }).then(ciResult => {
+        if (ciResult.isConfirmed) {
+          const ci = ciResult.value.trim();
+          this.processCarnetCI(ci);
+        }
+      });
+    } else {
+      // Si ya hay un CI, proceder directamente a verificar
+      this.processCarnetCI(this.actualizarIngreso.nit.toString());
+    }
+  }
+  processCarnetCI(ci: string) {
+    this.empresaService.getEmpresa().subscribe(response => {
+      const empresasArray = response.empresas ?? response;
+      const existingEmpresa = empresasArray.find((emp: empresa) =>
+        String(emp.nit || emp.EMP_NIT) === ci
+      );
+  
+      if (existingEmpresa) {
+        // Fill inputs with existing data silently
+        this.actualizarIngreso.nit = Number(existingEmpresa.nit || existingEmpresa.EMP_NIT || 0);
+        this.actualizarIngreso.proveedor = existingEmpresa.nombre || existingEmpresa.EMP_NOM;
+        this.actualizarIngreso.cod_prove = existingEmpresa.codigo || existingEmpresa.EMP_COD;
+        // No mostrar ningún mensaje cuando el CI ya existe
+        console.log('CI existente encontrado y datos cargados automáticamente');
+      } else {
+        // Prompt for name to add new empresa
+        Swal.fire({
+          title: 'Ingrese su Nombre',
+          input: 'text',
+          inputLabel: 'Nombre',
+          inputPlaceholder: 'Ingrese su nombre completo',
+          showCancelButton: true,
+          inputValidator: (value) => {
+            if (!value) {
+              return 'El nombre es obligatorio';
+            }
+            return null;
+          }
+        }).then(nameResult => {
+          if (nameResult.isConfirmed) {
+            const nombre = nameResult.value.trim();
+  
+            Swal.fire({
+              title: 'CI no encontrado',
+              text: 'El CI no existe. ¿Desea agregarlo?',
+              icon: 'question',
+              showCancelButton: true,
+              confirmButtonText: 'Sí, agregar',
+              cancelButtonText: 'No, cancelar'
+            }).then(confirmResult => {
+              if (confirmResult.isConfirmed) {
+                const newEmpresa: empresa = {
+                  id_empresa: 0,
+                  codigo: '',
+                  nombre: nombre,
+                  nit: Number(ci),
+                  baja: false,
+                  EMP_NIT: ci,
+                  EMP_NOM: nombre,
+                  EMP_COD: '',
+                  EMP_NPATRONAL: '',
+                  TIPO: ''
+                };
+  
+                this.empresaService.postEmpresa(newEmpresa).subscribe({
+                  next: (response: any) => {
+                    const createdEmpresa = response as empresa;
+                    this.actualizarIngreso.cod_prove = createdEmpresa.codigo || createdEmpresa.EMP_COD;
+                    this.actualizarIngreso.nit = Number(ci);
+                    this.actualizarIngreso.proveedor = nombre;
+                    Swal.fire('Proveedor agregado', 'El CI y nombre fueron agregados correctamente.', 'success');
+                  },
+                  error: (err) => {
+                    console.error('Error agregando CI:', err);
+                    Swal.fire('Error', 'No se pudo agregar el CI.', 'error');
+                  }
+                });
+              }
+            });
+          }
+        });
+      }
+    });
   }
   onFileChange(evt: any) {
     const file = evt.target.files[0];
@@ -434,7 +661,150 @@ showAmortizacion: boolean = false;
     };
     reader.readAsBinaryString(file);
   }
+  buscarAporte(num_form: number) {
+    if (this.actualizarIngreso.tipo_emision !== 'RECIBO') {
+      return;
+    }
 
+    this.ingresoService.getAportes(num_form).subscribe({
+      next: (data: any) => {
+        console.log('Full aporte data:', data);
+        if (data && data.pagos && data.pagos.length > 0) {
+          const aporte = data.pagos[0];
+          this.actualizarIngreso.proveedor = aporte.EMPRESA || '';
+          // Parse date string dd/mm/yyyy to Date object
+          if (aporte.FECHA_PAGO) {
+            const parts = aporte.FECHA_PAGO.split('/');
+            if (parts.length === 3) {
+              const day = parseInt(parts[0], 10);
+              const month = parseInt(parts[1], 10) - 1;
+              const year = parseInt(parts[2], 10);
+              this.actualizarIngreso.fecha = new Date(year, month, day);
+            } else {
+              this.actualizarIngreso.fecha = new Date(aporte.FECHA_PAGO);
+            }
+          } else {
+            this.actualizarIngreso.fecha = new Date();
+          }
+          this.actualizarIngreso.monto = aporte.TOTAL_IMPORTE_PLANILLA || 0;
+          this.actualizarIngreso.importe_total = aporte.TOTAL_IMPORTE_PLANILLA || 0;
+
+          // Handle deposito_dema and op_deposito_dema flag
+          // ... existing code ...
+          if (aporte.MONTO_DEMASIA && aporte.MONTO_DEMASIA > 0) {
+            this.actualizarIngreso.deposito_dema = aporte.MONTO_DEMASIA;
+            this.showDemasia = true;  // Use showDemasia instead of op_deposito_dema
+          } else {
+            this.actualizarIngreso.deposito_dema = 0;
+            this.showDemasia = false; // Use showDemasia instead of op_deposito_dema
+          }
+          // ... existing code ...
+
+          // Recalculate importe_total
+          //this.calculateCostoTotal();
+
+          // Set tipo_ingres and id_tipo_ingr_id automatically if METODO_PAGO is "DEPOSITO O TRANSFERENCIA"
+          if (aporte.METODO_PAGO) {
+            const metodoPagoUpper = aporte.METODO_PAGO.toUpperCase();
+            switch (metodoPagoUpper) {
+              case 'DEPOSITO O TRANSFERENCIA':
+                const tipoIngresoMatchDeposito = this.tipoIngresos.find(ti => ti.tipo_ingr.toUpperCase() === 'DEPOSITO A LA CUENTA');
+                if (tipoIngresoMatchDeposito) {
+                  this.actualizarIngreso.tipo_ingres = tipoIngresoMatchDeposito.tipo_ingr;
+                  this.actualizarIngreso.id_tipo_ingr_id = tipoIngresoMatchDeposito.id_tipo_ingr;
+                } else {
+                  this.actualizarIngreso.tipo_ingres = 'DEPOSITO A LA CUENTA';
+                  this.actualizarIngreso.id_tipo_ingr_id = '';
+                }
+                break;
+              case 'SIGEP':
+                const tipoIngresoMatchSigep = this.tipoIngresos.find(ti => ti.tipo_ingr.toUpperCase() === 'TRASPASO TGN');
+                if (tipoIngresoMatchSigep) {
+                  this.actualizarIngreso.tipo_ingres = tipoIngresoMatchSigep.tipo_ingr;
+                  this.actualizarIngreso.id_tipo_ingr_id = tipoIngresoMatchSigep.id_tipo_ingr;
+                } else {
+                  this.actualizarIngreso.tipo_ingres = 'TRASPASO TGN';
+                  this.actualizarIngreso.id_tipo_ingr_id = '';
+                }
+                break;
+            }
+            if (aporte.TIPO_EMPRESA) {
+              const metodoPagoUpper = aporte.TIPO_EMPRESA.toUpperCase();
+              switch (metodoPagoUpper) {
+                case 'AP':
+                  const tipoEmpresaMatchAp = this.tipoRubros.find(r => r.servicio === 'APORTES PATRONALES Y APORTES (PUBLICO)');
+                  if (tipoEmpresaMatchAp) {
+                    this.actualizarIngreso.id_tipo_rubro = tipoEmpresaMatchAp.id_detalle_rubro;
+                    this.actualizarIngreso.servicio = tipoEmpresaMatchAp.servicio;
+                    this.actualizarIngreso.nombre = tipoEmpresaMatchAp.nombre;
+                    this.actualizarIngreso.num_rubro = tipoEmpresaMatchAp.num_rubro;
+                    this.updateDetalle();
+                  } else {
+                    // If no matching rubro found, clear or set defaults as needed
+                    this.actualizarIngreso.id_tipo_rubro = '';
+                    this.actualizarIngreso.servicio = '';
+                    this.actualizarIngreso.nombre = '';
+                    this.actualizarIngreso.num_rubro = '';
+                  }
+                  break;
+                case 'AV':
+                  const tipoEmpresaMatchAv = this.tipoRubros.find(r => r.servicio === 'APORTES PATRONALES Y APORTES (PRIVADO)');
+                  if (tipoEmpresaMatchAv) {
+                    this.actualizarIngreso.id_tipo_rubro = tipoEmpresaMatchAv.id_detalle_rubro;
+                    this.actualizarIngreso.servicio = tipoEmpresaMatchAv.servicio;
+                    this.actualizarIngreso.nombre = tipoEmpresaMatchAv.nombre;
+                    this.actualizarIngreso.num_rubro = tipoEmpresaMatchAv.num_rubro;
+                    this.updateDetalle();
+                  } else {
+                    // If no matching rubro found, clear or set defaults as needed
+                    this.actualizarIngreso.id_tipo_rubro = '';
+                    this.actualizarIngreso.servicio = '';
+                    this.actualizarIngreso.nombre = '';
+                    this.actualizarIngreso.num_rubro = '';
+                  }
+                  break;
+              }
+            }
+          }
+
+
+          // Show success Swal after loading data
+          Swal.fire('Datos cargados', 'Los datos del aporte fueron cargados correctamente.', 'success');
+
+        } else {
+          Swal.fire('No encontrado', 'No se encontró aporte con ese número de formulario.', 'info');
+        }
+      },
+      error: (error) => {
+        console.error('Error al buscar aporte:', error);
+        Swal.fire('Error', 'Ocurrió un error al buscar el aporte.', 'error');
+      }
+    });
+  }
+  isExcludedRubro(id_tipo_rubro: any): boolean {
+    const serviciosExcluidos = [
+      'VENTA DE CARNETS DE ASEGURADO',
+      'FORMULARIOS DE NOVEDADES',
+      'VENTA DE EXAMENES POST OCUPACIONALES',
+      'VENTA DE EXAMENES PRE OCUPACIONALES',
+      'MULTAS POR INCUMPLIMIENTOS A CONTRATOS',
+      'RECAUDACION POR INTERNADO ROTATORIO',
+      'VENTA DE BIDONES',
+      'MULTAS POR BAJA DEL ASEGURADO',
+
+
+    ];
+
+    const rubro = this.tipoRubros.find(r => r.id_detalle_rubro === id_tipo_rubro);
+    if (!rubro) {
+      return false;
+    }
+    return serviciosExcluidos.includes(rubro.servicio);
+  }
+  isVentaDeCarnets(id_tipo_rubro: any): boolean {
+    const rubro = this.tipoRubros.find(r => r.id_detalle_rubro === id_tipo_rubro);
+    return rubro?.servicio === 'VENTA DE CARNETS DE ASEGURADO';
+  }
   updateDetalle() {
     if (this.actualizarIngreso.tipo_emision !== 'RECIBO' && this.actualizarIngreso.tipo_emision !== 'DOCUMENTO') {
       return;

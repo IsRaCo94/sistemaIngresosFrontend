@@ -31,7 +31,7 @@
         </div> -->
     <div class="row" *ngIf="!loading">
       <div class="col-md-12">
-        <div class="card card-primary">
+        <!-- <div class="card card-primary">
           <div class="card-body">
             <div class="row">
               <div class="col-md-6">
@@ -39,15 +39,15 @@
                   [routerLink]="['create']" [disabled]="disableNuevoRegistroForToday">
                   <em class="fa fa-plus"></em>&nbsp; Nuevo Registro
                 </button>
-              </div>
+              </div> -->
               <!-- <div class="col-md-6 text-right">
                 <button type="button" class="btn btn-success" (click)="generateDailyReport()">
                   <em class="fa-solid fa-lock"></em>&nbsp; Informe Diario
                 </button>
               </div> -->
-            </div>
+            <!-- </div>
           </div>
-        </div>
+        </div> -->
 
 
         <!-- Document Type Filter Buttons -->
@@ -59,7 +59,7 @@
           </div>
           <div class="card-body">
             <div class="row">
-              <div class="col-12">
+              <div class="col-12 d-flex justify-content-between align-items-center">
                 <div class="btn-group" role="group" aria-label="Document Type Filter">
                   <button 
                     *ngFor="let docType of documentTypes" 
@@ -71,6 +71,12 @@
                     <span class="badge badge-light ml-2" *ngIf="docType.value !== 'TODOS'">
                       {{getDocumentCount(docType.value)}}
                     </span>
+                  </button>
+                </div>
+                <div>
+                  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal"
+                    [routerLink]="['create']" [disabled]="disableNuevoRegistroForToday">
+                    <em class="fa fa-plus"></em>&nbsp; Nuevo Registro
                   </button>
                 </div>
               </div>

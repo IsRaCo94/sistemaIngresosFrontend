@@ -5,336 +5,409 @@
   <app-importar-documento *ngIf="selectedItem === 3" [excelPreview]="excelPreview" [excelFileToImport]="excelFileToImport" 
   (closeModal)="setSelectedItem(0)"(messageEvent)="receiveMessageImportDocumento($event)">
 </app-importar-documento>
-  <div class="col-md-12">
-    <div class="card">
-      <div class="card-header" style="background-color: #81b3ac; color: white;">
-        <div class="card-title">
-          <h3>REGISTRO INGRESOS</h3>
-        </div>
-        <div class="card-tools">
-          <button type="button" class="btn btn-tool" data-card-widget="collapse">
-            <i class="fas fa-minus"></i>
-          </button>
-        </div>
+<div class="col-md-12">
+  <div class="card">
+    <div class="card-header" style="background-color: #81b3ac; color: white;">
+      <div class="card-title">
+        <h3>ACTUALIZAR INGRESOS</h3>
       </div>
-      <!-- /.card-header -->
-      <div class="card-body"
-      [ngClass]="{
-        'bg-emision-recibo': actualizarIngreso.op_tipoemision === 'recibo',
-        'bg-emision-factura': actualizarIngreso.op_tipoemision === 'factura',
-        'bg-emision-documento': actualizarIngreso.op_tipoemision === 'documento'
-      }"
-      style="padding: 20px;">
-        <form>
+      <div class="card-tools">
+        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+          <i class="fas fa-minus"></i>
+        </button>
+      </div>
+    </div>
+    <!-- /.card-header -->
+    <div class="card-body" [ngClass]="{
+      'bg-emision-recibo': actualizarIngreso.op_tipoemision === 'recibo',
+      'bg-emision-factura': actualizarIngreso.op_tipoemision === 'factura',
+      'bg-emision-documento': actualizarIngreso.op_tipoemision === 'documento'
+    }" style="padding: 20px;">
+      <form>
+        <div class="row mb-4">
+          <div class="col-md-12">
+            <label>TIPO DE EMISION</label>
+            <div class="btn-group w-full" role="group" aria-label="Tipo de Emision">
+              <button type="button" class="btn" 
+                [ngClass]="{'btn-success': actualizarIngreso.op_tipoemision === 'factura', 'btn-outline-success': actualizarIngreso.op_tipoemision !== 'factura'}"
+                (click)="actualizarIngreso.op_tipoemision = 'factura'; onOpTipoEmisionChange('factura')">
+                <i class="fas fa-file-invoice"></i> FACTURA
+              </button>
+              <button type="button" class="btn" 
+                [ngClass]="{'btn-primary': actualizarIngreso.op_tipoemision === 'recibo', 'btn-outline-primary': actualizarIngreso.op_tipoemision !== 'recibo'}"
+                (click)="actualizarIngreso.op_tipoemision = 'recibo'; onOpTipoEmisionChange('recibo')">
+                <i class="fas fa-receipt"></i> RECIBOS
+              </button>
+              <button type="button" class="btn" 
+                [ngClass]="{'btn-warning': actualizarIngreso.op_tipoemision === 'documento', 'btn-outline-warning': actualizarIngreso.op_tipoemision !== 'documento'}"
+                (click)="actualizarIngreso.op_tipoemision = 'documento'; onOpTipoEmisionChange('documento')">
+                <i class="fas fa-file-alt"></i> DOCUMENTO
+              </button>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="actualizarIngreso.op_tipoemision === 'recibo'">
           <div class="row mb-4">
-            <div class="col-md-3">
+
+            <div class="col-md-4">
+              <label for="tipo_rubro">Tipo de Rubro o Servicio</label>
+              <select id="tipo_rubro" [(ngModel)]="actualizarIngreso.id_tipo_rubro" class="form-control w-full"
+                (change)="getTipoRubroChange(actualizarIngreso.id_tipo_rubro)" [ngModelOptions]="{standalone: true}"
+                [attr.disabled]="true">
+                <option [ngValue]="''" selected disabled>Tipo de Rubro o Servicio...</option>
+                <option *ngFor="let tipo of tipoRubros" [ngValue]="tipo.id_detalle_rubro">{{ tipo.servicio }}</option>
+              </select>
+              <div *ngIf="submitted && !actualizarIngreso.id_tipo_rubro" class="text-danger">
+                El campo Tipo de Rubro es obligatorio.
+              </div>
+            </div>
+       
+            <div class="col-md-4" *ngIf="!isExcludedRubro(actualizarIngreso.id_tipo_rubro)">
+              <label for="proveedor">Nro. de Formulario:</label>
               <p-floatlabel variant="on">
-                <p-select
-                  [options]="[{label: 'Factura', value: 'factura'}, {label: 'Recibo', value: 'recibo'},{label: 'Documento', value: 'documento'}]"
-                  [(ngModel)]="actualizarIngreso.op_tipoemision" (ngModelChange)="onOpTipoEmisionChange($event)"
-                  [ngModelOptions]="{standalone: true}" class="w-full" inputId="op_tipoemision">
+                <p-inputgroup>
+                  <input pInputText id="num_form" [(ngModel)]="actualizarIngreso.num_form"
+                    [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper required class="w-full"
+                    (keyup.enter)="buscarAporte(actualizarIngreso.num_form)" />
+                  <p-button type="button" icon="pi pi-search" severity="primary" (click)="buscarAporte(actualizarIngreso.num_form)"
+                    [disabled]="!actualizarIngreso.num_form"></p-button>
+                </p-inputgroup>
+                <label for="num_form">Nro. de Formulario:<span style="color: red">*</span></label>
+              </p-floatlabel>
+            </div>
+            
+            <div class="col-md-4">
+              <label for="fecha_reg">Fecha:</label>
+              <p-floatlabel variant="on">
+                <p-datepicker [(ngModel)]="actualizarIngreso.fecha" [ngModelOptions]="{standalone: true}" [showIcon]="true"
+                  inputId="fecha_reg" dateFormat="dd/mm/yy" class="w-full" />
+                <label for="fecha_reg">Fecha</label>
+              </p-floatlabel>
+              <div *ngIf="submitted && !actualizarIngreso.fecha" class="text-danger">
+                La fecha es obligatoria.
+              </div>
+            </div>
+          </div>
+          <div class="row mb-4">
+            <div class="col-md-4">
+              <label for="proveedor">Razón Social</label>
+              <p-inputgroup class="w-full">
+                <input pInputText id="proveedor" [(ngModel)]="actualizarIngreso.proveedor"
+                  [ngModelOptions]="{standalone: true}" [attr.disabled]="true" required placeholder="Razon Social"
+                  class="w-full" />
+                <p-button type="button" icon="pi pi-search" severity="success" (click)="setModalProveedor()"></p-button>
+              </p-inputgroup>
+              <div *ngIf="submitted && !actualizarIngreso.proveedor" class="text-danger">
+                El proveedor es obligatorio.
+              </div>
+            </div>
+            <div class="col-md-4" *ngIf="isVentaDeCarnets(actualizarIngreso.id_tipo_rubro)">
+              <label for="proveedor">Nro. Nit o Carnet de Indentidad:</label>
+              <p-floatlabel variant="on">
+                <p-inputgroup>
+                  <input pInputText id="nit" [(ngModel)]="actualizarIngreso.nit" [ngModelOptions]="{standalone: true}"
+                    [attr.disabled]="true" appUpper required class="w-full" />
+                  <p-button icon="pi pi-check" (click)="checkAndAddCarnetCI()"></p-button>
+                </p-inputgroup>
+                <label for="nit">Nit o CI:</label>
+              </p-floatlabel>
+              <div *ngIf="submitted && !actualizarIngreso.nit" class="text-danger">
+                La cuenta es obligatoria.
+              </div>
+            </div>
+  
+            <div class="col-md-4">
+              <label for="proveedor">Nro. Recibo:</label>
+              <p-floatlabel variant="on">
+                <input pInputText id="num_recibo" [(ngModel)]="actualizarIngreso.num_recibo"
+                  [ngModelOptions]="{standalone: true}" appUpper required [disabled]="false" class="w-full" />
+                <label for="num_recibo">Nro. Recibo:<span style="color: red">*</span></label>
+              </p-floatlabel>
+              <div *ngIf="submitted && !actualizarIngreso.num_recibo" class="text-danger">
+                El número de recibo es obligatorio.
+              </div>
+            </div>
+          </div>
+          <div class="row mb-4">
+            <!-- <div class="col-md-4">
+              <label for="cerrado">Cerrado:</label>
+              <p-floatlabel variant="on">
+                <p-select [options]="[{label: 'SI', value: 'SI'}]" [(ngModel)]="actualizarIngreso.cerrado"
+                  [ngModelOptions]="{standalone: true}" class="w-full" [disabled]="true" inputId="cerrado"></p-select>
+                <label for="cerrado">Cerrado:<span style="color: red">*</span></label>
+              </p-floatlabel>
+              <div *ngIf="submitted && !actualizarIngreso.cerrado" class="text-danger">
+                El campo Cerrado es obligatorio.
+              </div>
+            </div> -->
+     
+            <div class="col-md-4">
+              <label for="proveedor">Regional:</label>
+              <p-floatlabel variant="on">
+                <p-select [(ngModel)]="actualizarIngreso.lugar" [ngModelOptions]="{standalone: true}" [options]="[
+                  {label: 'REGIONAL LA PAZ', value: 'REGIONAL LA PAZ'},
+                  {label: 'REGIONAL COCHABAMBA', value: 'REGIONAL COCHABAMBA'},
+                  {label: 'REGIONAL SANTA CRUZ', value: 'REGIONAL SANTA CRUZ'},
+                  {label: 'REGIONAL ORURO', value: 'REGIONAL ORURO'},
+                  {label: 'REGIONAL POTOSI', value: 'REGIONAL POTOSI'},
+                  {label: 'REGIONAL CHUQUISACA', value: 'REGIONAL CHUQUISACA'},
+                  {label: 'REGIONAL TARIJA', value: 'REGIONAL TARIJA'},
+                  {label: 'REGIONAL PANDO', value: 'REGIONAL PANDO'},
+                  {label: 'REGIONAL BENI', value: 'REGIONAL BENI'},
+                ]" optionLabel="label" optionValue="value" placeholder="Regional" class="w-full" inputId="lugar">
                 </p-select>
-                <label for="op_tipoemision">SELECCIONE EL TIPO DE EMISION</label>
+              </p-floatlabel>
+              <div *ngIf="submitted && !actualizarIngreso.lugar" class="text-danger">
+                Obligatorio.
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label for="forma_pago">Forma de Pago</label>
+              <select id="forma_pago" [(ngModel)]="actualizarIngreso.id_tipo_ingr_id" class="form-control w-full"
+                (change)="getTipoIngresoChange(actualizarIngreso.id_tipo_ingr_id)" [ngModelOptions]="{standalone: true}"
+                [attr.disabled]="true">
+                <option [ngValue]="''" selected disabled>Forma de Pago...</option>
+                <option *ngFor="let tipo of tipoIngresos" [ngValue]="tipo.id_tipo_ingr">{{ tipo.tipo_ingr }}</option>
+              </select>
+              <div *ngIf="submitted && !actualizarIngreso.id_tipo_ingr_id" class="text-danger">
+                El campo Tipo de Ingreso es obligatorio.
+              </div>
+            </div>
+              <div class="col-md-4">
+              <label for="estado">Estado:</label>
+              <p-floatlabel variant="on">
+                <input pInputText id="estado" [(ngModel)]="actualizarIngreso.estado" [disabled]="true"
+                  [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper required class="w-full" />
+                <label for="estado">Estado:</label>
               </p-floatlabel>
             </div>
           </div>
-          <div *ngIf="actualizarIngreso.op_tipoemision === 'recibo'">
-            <div class="row mb-4">
-              <div class="col-md-4">
-                <label for="proveedor">Nro. Recibo:</label>
-                <p-floatlabel variant="on">
-                  <input pInputText id="num_recibo" [(ngModel)]="actualizarIngreso.num_recibo" [ngModelOptions]="{standalone: true}" appUpper required [disabled]="false" class="w-full"/>
-                  <label for="num_recibo">Nro. Recibo:<span style="color: red">*</span></label>
-                </p-floatlabel>
-                <div *ngIf="submitted && !actualizarIngreso.num_recibo" class="text-danger">
-                  El número de recibo es obligatorio.
-                </div>
-              </div>
-              <div class="col-md-4">
-                <label for="proveedor">Regional:</label>
-                <p-floatlabel variant="on">
-                  <p-select [(ngModel)]="actualizarIngreso.lugar" [ngModelOptions]="{standalone: true}" [options]="[
-                    {label: 'REGIONAL LA PAZ', value: 'REGIONAL LA PAZ'},
-                    {label: 'REGIONAL COCHABAMBA', value: 'REGIONAL COCHABAMBA'},
-                    {label: 'REGIONAL SANTA CRUZ', value: 'REGIONAL SANTA CRUZ'},
-                    {label: 'REGIONAL ORURO', value: 'REGIONAL ORURO'},
-                    {label: 'REGIONAL POTOSI', value: 'REGIONAL POTOSI'},
-                    {label: 'REGIONAL CHUQUISACA', value: 'REGIONAL CHUQUISACA'},
-                    {label: 'REGIONAL TARIJA', value: 'REGIONAL TARIJA'},
-                    {label: 'REGIONAL PANDO', value: 'REGIONAL PANDO'},
-                    {label: 'REGIONAL BENI', value: 'REGIONAL BENI'},
-                  ]" optionLabel="label" optionValue="value" placeholder="Regional" class="w-full" inputId="lugar">
-                  </p-select>
-                </p-floatlabel>
-                <div *ngIf="submitted && !actualizarIngreso.lugar" class="text-danger">
-                  Obligatorio.
-                </div>
-              </div>
-              <div class="col-md-4">
-                <label for="fecha_reg">Fecha:</label>
-                <p-floatlabel variant="on">
-                  <p-datepicker [(ngModel)]="actualizarIngreso.fecha" [ngModelOptions]="{standalone: true}" [showIcon]="true" inputId="fecha_reg" dateFormat="dd/mm/yy" class="w-full"/>
-                  <label for="fecha_reg">Fecha</label>
-                </p-floatlabel>
-                <div *ngIf="submitted && !actualizarIngreso.fecha" class="text-danger">
-                  La fecha es obligatoria.
-                </div>
+          <div class="row mb-4">
+            <div class="col-md-4">
+              <label for="monto">Monto:</label>
+              <p-floatlabel variant="in">
+                <p-inputnumber [(ngModel)]="actualizarIngreso.monto" inputId="monto" (ngModelChange)="calculateCostoTotal()"
+                  [ngModelOptions]="{standalone: true}" required [minFractionDigits]="2" class="w-full" />
+                <label for="monto">Monto:<span style="color: red">*</span></label>
+              </p-floatlabel>
+              <div *ngIf="submitted && !actualizarIngreso.monto" class="text-danger">
+                El monto es obligatorio.
               </div>
             </div>
-            <div class="row mb-4">
-              <div class="col-md-4">
-                <label for="proveedor">Razón Social</label>
-                <p-inputgroup class="w-full">
-                  <button pButton type="button" label="Buscar" class="p-button-success" (click)="setModalProveedor()" data-toggle="modal" data-target="#modalProveedor"></button>
-                  <input pInputText id="proveedor" [(ngModel)]="actualizarIngreso.proveedor" [ngModelOptions]="{standalone: true}" [attr.disabled]="true" required placeholder="Razon Social" class="w-full"/>
-                </p-inputgroup>
-                <div *ngIf="submitted && !actualizarIngreso.proveedor" class="text-danger">
-                  El proveedor es obligatorio.
-                </div>
+            <div class="col-md-4">
+              <label for="importe_total">Importe Total:</label>
+              <p-floatlabel variant="in">
+                <p-inputnumber [(ngModel)]="actualizarIngreso.importe_total" inputId="importe_total" [minFractionDigits]="2"
+                  [ngModelOptions]="{standalone: true}" required class="w-full" />
+                <label for="importe_total">Importe Total:<span style="color: red">*</span></label>
+              </p-floatlabel>
+              <div *ngIf="submitted && !actualizarIngreso.importe_total" class="text-danger">
+                El monto es obligatorio.
               </div>
-              <div class="col-md-4">
-                <label for="proveedor">Nro. de Formulario:</label>
-                <p-floatlabel variant="on">
-                  <input pInputText id="num_form" [(ngModel)]="actualizarIngreso.num_form" [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper required class="w-full"/>
-                  <label for="num_form">Nro. de Formulario:<span style="color: red">*</span></label>
+            </div>
+            <div class="col-md-4">
+              <label for="observacion">Observación</label>
+              <textarea pTextarea id="observacion" [(ngModel)]="actualizarIngreso.detalle"
+                [ngModelOptions]="{standalone: true}" rows="5" cols="60" placeholder="Observacion" appUpper
+                class="w-full">
+              </textarea>
+            </div>
+
+          </div>
+          <div class="row mb-4">
+            <div class="col-md-4">
+              <label for="demasia_checkbox" style="margin-right: 10px;">¿Con Demasia?</label>
+              <p-checkbox [(ngModel)]="showDemasia" [binary]="true" [ngModelOptions]="{standalone: true}"
+                inputId="demasia_checkbox"></p-checkbox>
+              <div *ngIf="showDemasia" class="mt-2">
+                <p-floatlabel variant="in">
+                  <p-inputnumber [(ngModel)]="actualizarIngreso.deposito_dema" inputId="deposito_dema"
+                    [minFractionDigits]="2" (ngModelChange)="calculateCostoTotal()"
+                    [ngModelOptions]="{standalone: true}" required class="w-full" />
+                  <label for="deposito_dema">Deposito Demasia</label>
                 </p-floatlabel>
               </div>
-              <div class="col-md-4">
+            </div>
+            <div class="col-md-4">
+              <label for="amortizacion_checkbox" style="margin-right: 10px;">¿Con Amortizacion?</label>
+              <p-checkbox [(ngModel)]="showAmortizacion" [binary]="true" [ngModelOptions]="{standalone: true}"
+                inputId="amortizacion_checkbox"></p-checkbox>
+              <div *ngIf="showAmortizacion" class="mt-2">
+                <p-floatlabel variant="in">
+                  <p-inputnumber [(ngModel)]="actualizarIngreso.amortizacion_pagos" inputId="amortizacion_pagos"
+                    [minFractionDigits]="2" (ngModelChange)="calculateCostoTotal()"
+                    [ngModelOptions]="{standalone: true}" required class="w-full" />
+                  <label for="amortizacion_pagos">Amortizacion de Pagos</label>
+                </p-floatlabel>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        <div *ngIf="actualizarIngreso.op_tipoemision === 'factura'">
+
+          <div class="row mb-4">
+            <div class="col-md-4">
+              <label for="proveedor">Nro. Factura:</label>
+              <p-floatlabel variant="on">
+                <input pInputText id="num_factura" [(ngModel)]="actualizarIngreso.num_factura"
+                  [ngModelOptions]="{standalone: true}" [disabled]="false" appUpper required class="w-full" />
+                <label for="num_factura">Nro. Factura:<span style="color: red">*</span></label>
+              </p-floatlabel>
+              <div *ngIf="submitted && !actualizarIngreso.num_factura" class="text-danger">
+                El número de factura es obligatorio.
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label for="lugar_select">Regional</label>
+              <p-select id="lugar_select" [(ngModel)]="actualizarIngreso.lugar" [ngModelOptions]="{standalone: true}"
+                [options]="[
+                  {label: 'REGIONAL LA PAZ', value: 'REGIONAL LA PAZ'},
+                  {label: 'REGIONAL COCHABAMBA', value: 'REGIONAL COCHABAMBA'},
+                  {label: 'REGIONAL SANTA CRUZ', value: 'REGIONAL SANTA CRUZ'},
+                  {label: 'REGIONAL ORURO', value: 'REGIONAL ORURO'},
+                  {label: 'REGIONAL POTOSI', value: 'REGIONAL POTOSI'},
+                  {label: 'REGIONAL CHUQUISACA', value: 'REGIONAL CHUQUISACA'},
+                  {label: 'REGIONAL TARIJA', value: 'REGIONAL TARIJA'},
+                  {label: 'REGIONAL PANDO', value: 'REGIONAL PANDO'},
+                  {label: 'REGIONAL BENI', value: 'REGIONAL BENI'},
+                ]" optionLabel="label" optionValue="value" placeholder="Regional" class="w-full">
+              </p-select>
+              <div *ngIf="submitted && !actualizarIngreso.lugar" class="text-danger">
+                Campo obligatorio.
+              </div>
+            </div>
+            <div class="col-md-2">
+              <label for="proveedor">Fecha:</label>
+              <p-floatlabel variant="on">
+                <p-datepicker [(ngModel)]="actualizarIngreso.fecha" [ngModelOptions]="{standalone: true}" [showIcon]="true"
+                  inputId="fecha_reg" dateFormat="dd/mm/yy" class="w-full" />
+                <label for="fecha_reg">Fecha</label>
+              </p-floatlabel>
+              <div *ngIf="submitted && !actualizarIngreso.fecha" class="text-danger">
+                La fecha es obligatoria.
+              </div>
+            </div>
+            <div class="col-md-2">
+              <label for="proveedor">Selecione un PDF:</label>
+              <button type="button" class="btn btn-primary" (click)="fileInput.click()">
+                <em class="fa fa-file-pdf"></em>&nbsp; Importar Factura
+              </button>
+              <input #fileInput type="file" accept=".pdf" (change)="onPdfSelected($event)" style="display: none;" />
+            </div>
+
+          </div>
+
+          <div class="row mb-4">
+
+            <div class="col-md-4">
+              <label for="proveedor">Razón Social</label>
+              <p-inputgroup class="w-full">
+                <input pInputText id="proveedor" [(ngModel)]="actualizarIngreso.proveedor"
+                  [ngModelOptions]="{standalone: true}" [attr.disabled]="true" required placeholder="Razon Social"
+                  class="w-full" />
+                <p-button type="button" icon="pi pi-search" severity="success" (click)="setModalProveedor()"></p-button>
+              </p-inputgroup>
+              <div *ngIf="submitted && !actualizarIngreso.proveedor" class="text-danger">
+                El proveedor es obligatorio.
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label for="proveedor">Nro. Nit:</label>
+              <p-floatlabel variant="on">
+                <p-inputgroup>
+                  <input pInputText id="nit" [(ngModel)]="actualizarIngreso.nit" [ngModelOptions]="{standalone: true}"
+                    [attr.disabled]="true" appUpper required class="w-full" />
+                  <p-button icon="pi pi-check"(click)="verifyNit()"></p-button>
+                </p-inputgroup>
+                <label for="nit">Nit:</label>
+              </p-floatlabel>
+              <div *ngIf="submitted && !actualizarIngreso.nit" class="text-danger">
+                La cuenta es obligatoria.
+              </div>
+            </div>
+            <!-- <div class="col-md-4">
+              <label for="proveedor">Cerrado:</label>
+              <p-floatlabel variant="on">
+                <p-select [options]="[{label: 'SI', value: 'SI'}]" [(ngModel)]="actualizarIngreso.cerrado"
+                  [ngModelOptions]="{standalone: true}" class="w-full" [disabled]="true" inputId="cerrado"></p-select>
+                <label for="cerrado">Cerrado:<span style="color: red">*</span></label>
+              </p-floatlabel>
+              <div *ngIf="submitted && !actualizarIngreso.cerrado" class="text-danger">
+                El campo Cerrado es obligatorio.
+              </div>
+            </div> -->
+          </div>
+
+          <div class="row mb-4">
+            <div class="col-md-4">
+              <label for="proveedor">Estado:</label>
+              <p-floatlabel variant="on">
+                <input pInputText id="estado" [(ngModel)]="actualizarIngreso.estado" [disabled]="true"
+                  [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper required class="w-full" />
                 <label for="estado">Estado:</label>
-                <p-floatlabel variant="on">
-                  <input pInputText id="estado" [(ngModel)]="actualizarIngreso.estado" [disabled]="true" [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper required class="w-full"/>
-                  <label for="estado">Estado:</label>
-                </p-floatlabel>
+              </p-floatlabel>
+            </div>
+
+            <div class="col-md-4">
+              <label for="forma_pago_select">Forma de Pago</label>
+              <select id="forma_pago_select" [(ngModel)]="actualizarIngreso.id_tipo_ingr_id" class="form-control w-full"
+                (change)="getTipoIngresoChange(actualizarIngreso.id_tipo_ingr_id)" [ngModelOptions]="{standalone: true}"
+                [attr.disabled]="true">
+                <option [ngValue]="''" selected disabled>Forma de Pago...</option>
+                <option *ngFor="let tipo of tipoIngresos" [ngValue]="tipo.id_tipo_ingr">{{ tipo.tipo_ingr }}</option>
+              </select>
+              <div *ngIf="submitted && !actualizarIngreso.id_tipo_ingr_id" class="text-danger">
+                El campo Tipo de Ingreso es obligatorio.
               </div>
             </div>
-            <div class="row mb-4">
-              <div class="col-md-4">
-                <label for="cerrado">Cerrado:</label>
-                <p-floatlabel variant="on">
-                  <p-select [options]="[{label: 'SI', value: 'SI'}]" [(ngModel)]="actualizarIngreso.cerrado" [ngModelOptions]="{standalone: true}" class="w-full" [disabled]="true" inputId="cerrado"></p-select>
-                  <label for="cerrado">Cerrado:<span style="color: red">*</span></label>
-                </p-floatlabel>
-                <div *ngIf="submitted && !actualizarIngreso.cerrado" class="text-danger">
-                  El campo Cerrado es obligatorio.
-                </div>
-              </div>
-              <div class="col-md-4">
-                <label for="forma_pago">Forma de Pago</label>
-                <select id="forma_pago" [(ngModel)]="actualizarIngreso.id_tipo_ingr_id" class="form-control w-full" (change)="getTipoIngresoChange(actualizarIngreso.id_tipo_ingr_id)" [ngModelOptions]="{standalone: true}" [attr.disabled]="true">
-                  <option [ngValue]="''" selected disabled>Forma de Pago...</option>
-                  <option *ngFor="let tipo of tipoIngresos" [ngValue]="tipo.id_tipo_ingr">{{ tipo.tipo_ingr }}</option>
-                </select>
-                <div *ngIf="submitted && !actualizarIngreso.id_tipo_ingr_id" class="text-danger">
-                  El campo Tipo de Ingreso es obligatorio.
-                </div>
-              </div>
-              <div class="col-md-4">
-                <label for="tipo_rubro">Tipo de Rubro o Servicio</label>
-                <select id="tipo_rubro" [(ngModel)]="actualizarIngreso.id_tipo_rubro" class="form-control w-full" (change)="getTipoRubroChange(actualizarIngreso.id_tipo_rubro)" [ngModelOptions]="{standalone: true}" [attr.disabled]="true">
-                  <option [ngValue]="''" selected disabled>Tipo de Rubro o Servicio...</option>
-                  <option *ngFor="let tipo of tipoRubros" [ngValue]="tipo.id_detalle_rubro">{{ tipo.servicio }}</option>
-                </select>
-                <div *ngIf="submitted && !actualizarIngreso.id_tipo_rubro" class="text-danger">
-                  El campo Tipo de Rubro es obligatorio.
-                </div>
-              </div>
-            </div>
-            <div class="row mb-4">
-              <div class="col-md-4">
-                <label for="monto">Monto:</label>
-                <p-floatlabel variant="in">
-                  <p-inputnumber [(ngModel)]="actualizarIngreso.monto" inputId="monto" (ngModelChange)="calculateCostoTotal()" [ngModelOptions]="{standalone: true}" required [minFractionDigits]="2" class="w-full"/>
-                  <label for="monto">Monto:<span style="color: red">*</span></label>
-                </p-floatlabel>
-                <div *ngIf="submitted && !actualizarIngreso.monto" class="text-danger">
-                  El monto es obligatorio.
-                </div>
-              </div>
-              <div class="col-md-4">
-                <label for="importe_total">Importe Total:</label>
-                <p-floatlabel variant="in">
-                  <p-inputnumber [(ngModel)]="actualizarIngreso.importe_total" inputId="importe_total" [minFractionDigits]="2" [ngModelOptions]="{standalone: true}" required class="w-full"/>
-                  <label for="importe_total">Importe Total:<span style="color: red">*</span></label>
-                </p-floatlabel>
-                <div *ngIf="submitted && !actualizarIngreso.importe_total" class="text-danger">
-                  El monto es obligatorio.
-                </div>
-              </div>
-              <div class="col-md-4">
-                <label for="observacion">Observación</label>
-                <textarea pTextarea id="observacion" [(ngModel)]="actualizarIngreso.detalle" [ngModelOptions]="{standalone: true}" rows="5" cols="60" placeholder="Observacion" appUpper class="w-full">
-                </textarea>
-              </div>
-          
-            </div>
-            <div class="row mb-4">
-              <div class="col-md-4">
-                <label for="demasia_checkbox" style="margin-right: 10px;">¿Con Demasia?</label>
-                <p-checkbox [(ngModel)]="showDemasia" [binary]="true" [ngModelOptions]="{standalone: true}" inputId="demasia_checkbox"></p-checkbox>
-                <div *ngIf="showDemasia" class="mt-2">
-                  <p-floatlabel variant="in">
-                    <p-inputnumber [(ngModel)]="actualizarIngreso.deposito_dema" inputId="deposito_dema" [minFractionDigits]="2" (ngModelChange)="calculateCostoTotal()" [ngModelOptions]="{standalone: true}" required class="w-full"/>
-                    <label for="deposito_dema">Deposito Demasia</label>
-                  </p-floatlabel>
-                </div>
-              </div>
-              <div class="col-md-4">
-                <label for="amortizacion_checkbox" style="margin-right: 10px;">¿Con Amortizacion?</label>
-                <p-checkbox [(ngModel)]="showAmortizacion" [binary]="true" [ngModelOptions]="{standalone: true}" inputId="amortizacion_checkbox"></p-checkbox>
-                <div *ngIf="showAmortizacion" class="mt-2">
-                  <p-floatlabel variant="in">
-                    <p-inputnumber [(ngModel)]="actualizarIngreso.amortizacion_pagos" inputId="amortizacion_pagos" [minFractionDigits]="2" (ngModelChange)="calculateCostoTotal()" [ngModelOptions]="{standalone: true}" required class="w-full"/>
-                    <label for="amortizacion_pagos">Amortizacion de Pagos</label>
-                  </p-floatlabel>
-                </div>
-              </div>
-           
-            </div>
-          </div>
-          <div *ngIf="actualizarIngreso.op_tipoemision === 'factura'">
-         
-            <div class="row mb-4">
-              <div class="col-md-4">
-                <label for="proveedor">Nro. Factura:</label>
-                <p-floatlabel variant="on">
-                  <input pInputText id="num_factura" [(ngModel)]="actualizarIngreso.num_factura" [ngModelOptions]="{standalone: true}" [disabled]="false" appUpper required class="w-full"/>
-                  <label for="num_factura">Nro. Factura:<span style="color: red">*</span></label>
-                </p-floatlabel>
-                <div *ngIf="submitted && !actualizarIngreso.num_factura" class="text-danger">
-                  El número de factura es obligatorio.
-                </div>
-              </div>
-              <div class="col-md-4">
-                <label for="lugar_select">Regional</label>
-                <p-select id="lugar_select" [(ngModel)]="actualizarIngreso.lugar" [ngModelOptions]="{standalone: true}" [options]="[
-                    {label: 'REGIONAL LA PAZ', value: 'REGIONAL LA PAZ'},
-                    {label: 'REGIONAL COCHABAMBA', value: 'REGIONAL COCHABAMBA'},
-                    {label: 'REGIONAL SANTA CRUZ', value: 'REGIONAL SANTA CRUZ'},
-                    {label: 'REGIONAL ORURO', value: 'REGIONAL ORURO'},
-                    {label: 'REGIONAL POTOSI', value: 'REGIONAL POTOSI'},
-                    {label: 'REGIONAL CHUQUISACA', value: 'REGIONAL CHUQUISACA'},
-                    {label: 'REGIONAL TARIJA', value: 'REGIONAL TARIJA'},
-                    {label: 'REGIONAL PANDO', value: 'REGIONAL PANDO'},
-                    {label: 'REGIONAL BENI', value: 'REGIONAL BENI'},
-                  ]" optionLabel="label" optionValue="value" placeholder="Regional" class="w-full">
-                </p-select>
-                <div *ngIf="submitted && !actualizarIngreso.lugar" class="text-danger">
-                  Campo obligatorio.
-                </div>
-              </div>
-              <div class="col-md-2">
-                <label for="proveedor">Fecha:</label>
-                <p-floatlabel variant="on">
-                  <p-datepicker [(ngModel)]="actualizarIngreso.fecha" [ngModelOptions]="{standalone: true}" [showIcon]="true" inputId="fecha_reg" dateFormat="dd/mm/yy" class="w-full"/>
-                  <label for="fecha_reg">Fecha</label>
-                </p-floatlabel>
-                <div *ngIf="submitted && !actualizarIngreso.fecha" class="text-danger">
-                  La fecha es obligatoria.
-                </div>
-              </div>
-              <div class="col-md-2">
-                <label for="proveedor">Selecione un PDF:</label>
-                  <button type="button" class="btn btn-primary" (click)="fileInput.click()">
-                    <em class="fa fa-file-pdf"></em>&nbsp; Importar Factura
-                  </button>
-                  <input #fileInput type="file" accept=".pdf" (change)="onPdfSelected($event)" style="display: none;" />
-                </div>
-             
-            </div>
-          
-            <div class="row mb-4">
-       
-              <div class="col-md-4">
-                <label for="proveedor">Razón Social</label>
-                <p-inputgroup class="w-full">
-                  <button pButton type="button" label="Buscar" class="p-button-success" (click)="setModalProveedor()" data-toggle="modal" data-target="#modalProveedor"></button>
-                  <input pInputText id="proveedor" [(ngModel)]="actualizarIngreso.proveedor" [ngModelOptions]="{standalone: true}" [attr.disabled]="true" required placeholder="Razón Social" class="w-full"/>
-                </p-inputgroup>
-                <div *ngIf="submitted && !actualizarIngreso.proveedor" class="text-danger">
-                  El proveedor es obligatorio.
-                </div>
-              </div>
-              <div class="col-md-4">
-                <label for="proveedor">Nro. Nit:</label>
-                <p-floatlabel variant="on">
-                  <input pInputText id="nit" [(ngModel)]="actualizarIngreso.nit" [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper required class="w-full"/>
-                  <label for="nit">Nit:</label>
-                </p-floatlabel>
-                <div *ngIf="submitted && !actualizarIngreso.nit" class="text-danger">
-                  La cuenta es obligatoria.
-                </div>
-              </div>
-              <div class="col-md-4">
-                <label for="proveedor">Cerrado:</label>
-                <p-floatlabel variant="on">
-                  <p-select [options]="[{label: 'SI', value: 'SI'}]" [(ngModel)]="actualizarIngreso.cerrado" [ngModelOptions]="{standalone: true}" class="w-full" [disabled]="true" inputId="cerrado"></p-select>
-                  <label for="cerrado">Cerrado:<span style="color: red">*</span></label>
-                </p-floatlabel>
-                <div *ngIf="submitted && !actualizarIngreso.cerrado" class="text-danger">
-                  El campo Cerrado es obligatorio.
-                </div>
-              </div>
-            </div>
-          
-            <div class="row mb-4">
-              <div class="col-md-4">
-                <label for="proveedor">Estado:</label>
-                <p-floatlabel variant="on">
-                  <input pInputText id="estado" [(ngModel)]="actualizarIngreso.estado" [disabled]="true" [ngModelOptions]="{standalone: true}" [attr.disabled]="true" appUpper required class="w-full"/>
-                  <label for="estado">Estado:</label>
-                </p-floatlabel>
-              </div>
-       
-              <div class="col-md-4">
-                <label for="forma_pago_select">Forma de Pago</label>
-                <select id="forma_pago_select" [(ngModel)]="actualizarIngreso.id_tipo_ingr_id" class="form-control w-full" (change)="getTipoIngresoChange(actualizarIngreso.id_tipo_ingr_id)" [ngModelOptions]="{standalone: true}" [attr.disabled]="true">
-                  <option [ngValue]="''" selected disabled>Forma de Pago...</option>
-                  <option *ngFor="let tipo of tipoIngresos" [ngValue]="tipo.id_tipo_ingr">{{ tipo.tipo_ingr }}</option>
-                </select>
-                <div *ngIf="submitted && !actualizarIngreso.id_tipo_ingr_id" class="text-danger">
-                  El campo Tipo de Ingreso es obligatorio.
-                </div>
-              </div>
-              <div class="col-md-4">
-                <label for="tipo_rubro_select">Tipo de Rubro o Servicio</label>
-                <select id="tipo_rubro_select" [(ngModel)]="actualizarIngreso.id_tipo_rubro" class="form-control w-full" (change)="getTipoRubroChange(actualizarIngreso.id_tipo_rubro)" [ngModelOptions]="{standalone: true}" [attr.disabled]="true">
-                  <option [ngValue]="''" selected disabled>Tipo de Rubro o Servicio...</option>
-                  <option *ngFor="let tipo of tipoRubros" [ngValue]="tipo.id_detalle_rubro">{{ tipo.servicio }}</option>
-                </select>
-                <div *ngIf="submitted && !actualizarIngreso.id_tipo_rubro" class="text-danger">
-                  El campo Tipo de Rubro es obligatorio.
-                </div>
-              </div>
-            </div>
-          
-            <div class="row mb-4">
-              <div class="col-md-4">
-                <label for="monto">Monto:</label>
-                <p-floatlabel variant="in">
-                  <p-inputnumber [(ngModel)]="actualizarIngreso.monto" inputId="monto" required [minFractionDigits]="2" (ngModelChange)="calculateCostoTotal2()" [ngModelOptions]="{standalone: true}" class="w-full"/>
-                  <label for="monto">Monto:<span style="color: red">*</span></label>
-                </p-floatlabel>
-                <div *ngIf="submitted && !actualizarIngreso.monto" class="text-danger">
-                  El monto es obligatorio.
-                </div>
-              </div>
-              <div class="col-md-4">
-                <label for="importe_total">Importe Total:</label>
-                <p-floatlabel variant="in">
-                  <p-inputnumber [(ngModel)]="actualizarIngreso.importe_total" inputId="importe_total" [minFractionDigits]="2" (ngModelChange)="calculateCostoTotal2()" [ngModelOptions]="{standalone: true}" required class="w-full"/>
-                  <label for="importe_total">Importe Total:<span style="color: red">*</span></label>
-                </p-floatlabel>
-                <div *ngIf="submitted && !actualizarIngreso.importe_total" class="text-danger">
-                  El monto es obligatorio.
-                </div>
-              </div>
-              <div class="col-md-4">
-                <label for="observacion">Observación</label>
-                <textarea pTextarea id="observacion" [(ngModel)]="actualizarIngreso.detalle" [ngModelOptions]="{standalone: true}" rows="5" cols="60" placeholder="Observacion" appUpper class="w-full">
-                </textarea>
+            <div class="col-md-4">
+              <label for="tipo_rubro_select">Tipo de Rubro o Servicio</label>
+              <select id="tipo_rubro_select" [(ngModel)]="actualizarIngreso.id_tipo_rubro" class="form-control w-full"
+                (change)="getTipoRubroChange(actualizarIngreso.id_tipo_rubro)" [ngModelOptions]="{standalone: true}"
+                [attr.disabled]="true">
+                <option [ngValue]="''" selected disabled>Tipo de Rubro o Servicio...</option>
+                <option *ngFor="let tipo of tipoRubros" [ngValue]="tipo.id_detalle_rubro">{{ tipo.servicio }}</option>
+              </select>
+              <div *ngIf="submitted && !actualizarIngreso.id_tipo_rubro" class="text-danger">
+                El campo Tipo de Rubro es obligatorio.
               </div>
             </div>
           </div>
+
+          <div class="row mb-4">
+            <div class="col-md-4">
+              <label for="monto">Monto:</label>
+              <p-floatlabel variant="in">
+                <p-inputnumber [(ngModel)]="actualizarIngreso.monto" inputId="monto" required [minFractionDigits]="2"
+                  (ngModelChange)="calculateCostoTotal2()" [ngModelOptions]="{standalone: true}" class="w-full" />
+                <label for="monto">Monto:<span style="color: red">*</span></label>
+              </p-floatlabel>
+              <div *ngIf="submitted && !actualizarIngreso.monto" class="text-danger">
+                El monto es obligatorio.
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label for="importe_total">Importe Total:</label>
+              <p-floatlabel variant="in">
+                <p-inputnumber [(ngModel)]="actualizarIngreso.importe_total" inputId="importe_total" [minFractionDigits]="2"
+                  (ngModelChange)="calculateCostoTotal2()" [ngModelOptions]="{standalone: true}" required
+                  class="w-full" />
+                <label for="importe_total">Importe Total:<span style="color: red">*</span></label>
+              </p-floatlabel>
+              <div *ngIf="submitted && !actualizarIngreso.importe_total" class="text-danger">
+                El monto es obligatorio.
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label for="observacion">Observación</label>
+              <textarea pTextarea id="observacion" [(ngModel)]="actualizarIngreso.detalle"
+                [ngModelOptions]="{standalone: true}" rows="5" cols="60" placeholder="Observacion" appUpper
+                class="w-full">
+              </textarea>
+            </div>
+          </div>
+        </div>
           <div *ngIf="actualizarIngreso.op_tipoemision == 'documento'">
   
             <div class="row mb-4">
