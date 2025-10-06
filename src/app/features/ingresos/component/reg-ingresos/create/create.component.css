@@ -371,6 +371,18 @@ select#tipo_rubro_select option:disabled {
   text-align: left;
 }
 :host ::ng-deep #monto,
-:host ::ng-deep #importe_total {
+:host ::ng-deep #importe_total,
+:host ::ng-deep #deposito_dema,
+:host ::ng-deep #amortizacion_pagos  {
   background-color: #cff0df8d !important;
 }
+/* ... existing code ... */
+
+select#tipo_rubro,
+select#tipo_rubro_select {
+  background-color: rgba(37, 77, 29, 0.849) !important; /* more visible green with opacity */
+
+  padding-left: 12px !important; /* optional: better padding */
+}
+
+/* ... existing code ... */

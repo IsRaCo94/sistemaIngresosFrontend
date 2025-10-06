@@ -24,7 +24,7 @@
       'bg-emision-documento': actualizarIngreso.op_tipoemision === 'documento'
     }" style="padding: 20px;">
       <form>
-        <div class="row mb-4">
+        <div class="row mb-4" *ngIf="!isEditing">
           <div class="col-md-12">
             <label>TIPO DE EMISION</label>
             <div class="btn-group w-full" role="group" aria-label="Tipo de Emision">
@@ -106,7 +106,8 @@
               <p-floatlabel variant="on">
                 <p-inputgroup>
                   <input pInputText id="nit" [(ngModel)]="actualizarIngreso.nit" [ngModelOptions]="{standalone: true}"
-                    [attr.disabled]="true" appUpper required class="w-full" />
+                    [attr.disabled]="true" appUpper required class="w-full"
+                    (keyup.enter)="checkAndAddCarnetCI()" />
                   <p-button icon="pi pi-check" (click)="checkAndAddCarnetCI()"></p-button>
                 </p-inputgroup>
                 <label for="nit">Nit o CI:</label>
@@ -209,7 +210,7 @@
               <label for="observacion">Observación</label>
               <textarea pTextarea id="observacion" [(ngModel)]="actualizarIngreso.detalle"
                 [ngModelOptions]="{standalone: true}" rows="5" cols="60" placeholder="Observacion" appUpper
-                class="w-full">
+                class="w-full form-control">
               </textarea>
             </div>
 
@@ -403,7 +404,7 @@
               <label for="observacion">Observación</label>
               <textarea pTextarea id="observacion" [(ngModel)]="actualizarIngreso.detalle"
                 [ngModelOptions]="{standalone: true}" rows="5" cols="60" placeholder="Observacion" appUpper
-                class="w-full">
+                class="w-full form-control">
               </textarea>
             </div>
           </div>
@@ -520,7 +521,7 @@
               <div class="col-md-4">
                 <label for="observacion">Observación</label>
                 <textarea pTextarea id="observacion" [(ngModel)]="actualizarIngreso.detalle"
-                  [ngModelOptions]="{standalone: true}" rows="5" cols="60" placeholder="Observacion" appUpper class="w-full">
+                  [ngModelOptions]="{standalone: true}" rows="5" cols="60" placeholder="Observacion" appUpper class="w-full ">
                 </textarea>
               </div>
             </div>
@@ -533,5 +534,6 @@
             [disabled]="isLoading">
             <i class="fa" [ngClass]="{'fa-spin fa-spinner': isLoading, '': !isLoading}"></i>{{button}}</button>
         </div>
+
       </form>
     </div>

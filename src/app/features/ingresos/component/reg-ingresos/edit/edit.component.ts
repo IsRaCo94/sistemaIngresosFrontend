@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ingresos } from '../../../../models/ingresos';
 import { IngresosService } from '../../../../service/ingresos.service';
 import { empresa } from '../../../../models/empresa';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
 import Swal from 'sweetalert2';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -32,9 +32,12 @@ export class EditComponent implements OnInit {
   tipoRubros: RubrosDetalle[] = [];
   excelFileToImport: File | null = null;
   excelPreview: any[] = [];
-showAmortizacion: boolean = false;
+  showAmortizacion: boolean = false;
   showDemasia: boolean = false;
   pdfSrc: string | null = null;  // Agrega esta propiedad
+  isEditing: boolean = true; // Set to true when editing
+
+  
   constructor(
     private _formBuilder: FormBuilder,
     private changeDetector: ChangeDetectorRef,
@@ -44,6 +47,7 @@ showAmortizacion: boolean = false;
     private tipoingresoService: IngresosService,
     private rubrosService: DetalleRubrosService,
     private empresaService: EmpresaService,
+  
   ) { }
 
 
@@ -86,6 +90,7 @@ showAmortizacion: boolean = false;
     this.getTipoRubro()
     this.calculateCostoTotal();
     this.onOpTipoEmisionChange(this.actualizarIngreso.op_tipoemision);
+    this.getNextNumRecibo();
     //this.calculateCostoTotal2();
 
     // No llamar aquí: resetea campos ya cargados al editar
@@ -128,7 +133,7 @@ showAmortizacion: boolean = false;
   //       });
   //     });
   // }
-  
+
   cargarRegistros() {
     this.ingresoService.getIngresosUno(this.rutaActiva.snapshot.params['id_ingresos'])
       .subscribe((ingresos: any) => {
@@ -140,11 +145,11 @@ showAmortizacion: boolean = false;
           const fechaDate = new Date(ingresos.fecha);
           ingresos.fecha = new Date(fechaDate.getFullYear(), fechaDate.getMonth(), fechaDate.getDate());
         }
-        
+
         // Set checkboxes based on actual record values
         this.showAmortizacion = ingresos.amortizacion_pagos > 0;
         this.showDemasia = ingresos.deposito_dema > 0;
-    
+
         switch (ingresos.tipo_emision) {
           case 'FACTURA':
             ingresos.op_tipoemision = 'factura';
@@ -157,21 +162,20 @@ showAmortizacion: boolean = false;
             break;
         }
 
-  
+
         this.actualizarIngreso = ingresos;
         console.log('Ingreso:', this.actualizarIngreso);
-        
+
       });
   }
   ngAfterContentChecked(): void {
     this.changeDetector.detectChanges();
   }
-    persona = new persona;
+  persona = new persona;
   personas: persona[] = [];
   proveedor = new empresa;
   proveedores: empresa[] = [];
   selectedItem: any;
-  
 
   titleCard = '';
 
@@ -182,7 +186,7 @@ showAmortizacion: boolean = false;
   setModalProveedor() {
     this.selectedItem = 1;
     console.log(this.selectedItem);
-    
+
   }
 
   setSelectedItem2(item: any) {
@@ -191,11 +195,12 @@ showAmortizacion: boolean = false;
   setModalPersona() {
     this.selectedItem = 2;
     console.log(this.selectedItem);
-    
+
   }
   receiveMessageImportDocumento($event: ingresos) {
-   
+
   }
+
   //   receiveMessageProveedor($event: any) {
 
   //     this.nuevoIngreso.proveedor = $event.nombre
@@ -222,7 +227,7 @@ showAmortizacion: boolean = false;
   }
   receiveMessagePersona($event: any) {
     this.actualizarIngreso.proveedor = $event.nombre;
-    
+
   }
   getTipoIngreso() {
     this.tipoingresoService.getTipoIngreso()
@@ -274,16 +279,21 @@ showAmortizacion: boolean = false;
     console.log('recibo', this.actualizarIngreso.num_rubro);
 
   }
-  getNextNumRecibo() {
-    this.ingresoService.getLastNumRecibo().subscribe({
-      next: (lastNum: number) => {
-        // Start from 1000 if lastNum is less than 1000
-        this.actualizarIngreso.num_recibo = lastNum >= 1000 ? lastNum++ : 1000;
-      },
-      error: (error) => {
-        console.error('Error fetching last num_depo:', error);
-        this.actualizarIngreso.num_recibo = 1000; // fallback start from 1000
-      }
+  getNextNumRecibo(): Promise<void> {
+    return new Promise((resolve) => {
+      this.ingresoService.getLastNumRecibo().subscribe({
+        next: (lastNum: number) => {
+          console.log('Raw last receipt number from backend:', lastNum);
+          this.actualizarIngreso.num_recibo = (lastNum && lastNum > 0) ? lastNum + 1 : 1;
+          console.log('Assigned next receipt number:', this.actualizarIngreso.num_recibo);
+          resolve();
+        },
+        error: (error) => {
+          console.error('Error fetching last receipt number:', error);
+          this.actualizarIngreso.num_recibo = 1; // fallback start from 1
+          resolve();
+        }
+      });
     });
   }
   getNextNumFactura() {
@@ -341,7 +351,7 @@ showAmortizacion: boolean = false;
           const fechaCorregida = new Date(fechaLocal.getTime() + fechaLocal.getTimezoneOffset() * 60000);
           this.actualizarIngreso.fecha = fechaCorregida;
           this.calculateCostoTotal2();
-  
+
           this.empresaService.getAllEmpresas().subscribe(response => {
             const empresasArray = response.empresas;
             const matchedEmpresa = empresasArray.find((emp: empresa) =>
@@ -362,7 +372,7 @@ showAmortizacion: boolean = false;
                 const matchedEmpresa2 = empresasArray2.find((emp: empresa) =>
                   String(emp.EMP_NIT || emp.nit) === String(this.actualizarIngreso.nit)
                 );
-                
+
                 if (matchedEmpresa2) {
                   this.actualizarIngreso.cod_prove = matchedEmpresa2.EMP_COD || matchedEmpresa2.codigo;
                   Swal.fire({
@@ -393,7 +403,7 @@ showAmortizacion: boolean = false;
                         EMP_NPATRONAL: '',
                         TIPO: ''
                       };
-  
+
                       this.empresaService.getEmpresa().subscribe(empresas => {
                         const empresasArray3 = empresas.empresas || empresas;
                         const exists = empresasArray3.some((emp: empresa) =>
@@ -431,7 +441,7 @@ showAmortizacion: boolean = false;
       Swal.fire('Error', 'El NIT y el proveedor están vacíos.', 'error');
       return;
     }
-  
+
     forkJoin({
       allEmpresasResponse: this.empresaService.getAllEmpresas(),
       empresasResponse: this.empresaService.getEmpresa()
@@ -440,22 +450,22 @@ showAmortizacion: boolean = false;
         // Extract arrays from responses, adjust if needed
         const allEmpresasArray = allEmpresasResponse.empresas ?? allEmpresasResponse;
         const empresasArray = empresasResponse.empresas ?? empresasResponse;
-  
+
         // Merge both arrays
         const combinedEmpresas = [...allEmpresasArray, ...empresasArray];
-  
+
         // Remove duplicates by NIT (optional)
         const uniqueEmpresasMap = new Map<string, empresa>();
         combinedEmpresas.forEach(emp => {
           uniqueEmpresasMap.set(String(emp.EMP_NIT ?? emp.nit), emp);
         });
         const uniqueEmpresas = Array.from(uniqueEmpresasMap.values());
-  
+
         // Check if NIT exists
         const match = uniqueEmpresas.find((emp: empresa) =>
           this.actualizarIngreso.nit && String(emp.EMP_NIT ?? emp.nit) === String(this.actualizarIngreso.nit)
         );
-  
+
         if (match) {
           Swal.fire('Éxito', 'El Nit y el Proveedor existen.', 'success');
         } else {
@@ -473,7 +483,7 @@ showAmortizacion: boolean = false;
     if (this.actualizarIngreso.servicio !== 'VENTA DE CARNETS DE ASEGURADO') {
       return;
     }
-  
+
     // Si el campo CI está vacío (0 o null/undefined), mostrar Swal para ingresar CI
     if (!this.actualizarIngreso.nit || this.actualizarIngreso.nit === 0) {
       Swal.fire({
@@ -505,7 +515,7 @@ showAmortizacion: boolean = false;
       const existingEmpresa = empresasArray.find((emp: empresa) =>
         String(emp.nit || emp.EMP_NIT) === ci
       );
-  
+
       if (existingEmpresa) {
         // Fill inputs with existing data silently
         this.actualizarIngreso.nit = Number(existingEmpresa.nit || existingEmpresa.EMP_NIT || 0);
@@ -529,8 +539,8 @@ showAmortizacion: boolean = false;
           }
         }).then(nameResult => {
           if (nameResult.isConfirmed) {
-            const nombre = nameResult.value.trim();
-  
+            const nombre = nameResult.value.trim().toUpperCase();
+
             Swal.fire({
               title: 'CI no encontrado',
               text: 'El CI no existe. ¿Desea agregarlo?',
@@ -552,7 +562,7 @@ showAmortizacion: boolean = false;
                   EMP_NPATRONAL: '',
                   TIPO: ''
                 };
-  
+
                 this.empresaService.postEmpresa(newEmpresa).subscribe({
                   next: (response: any) => {
                     const createdEmpresa = response as empresa;
@@ -579,7 +589,7 @@ showAmortizacion: boolean = false;
       Swal.fire('Error', 'Debe seleccionar un archivo.', 'error');
       return;
     }
-  
+
     // Validar extensión de archivo
     const validExtensions = ['.xlsx', '.xls'];
     const fileName = file.name.toLowerCase();
@@ -587,9 +597,9 @@ showAmortizacion: boolean = false;
       Swal.fire('Error', 'Solo se permiten archivos de Excel (.xlsx, .xls).', 'error');
       return;
     }
-  
+
     this.excelFileToImport = file;
-  
+
     const reader: FileReader = new FileReader();
     reader.onload = (e: any) => {
       const bstr: string = e.target.result;
@@ -597,24 +607,24 @@ showAmortizacion: boolean = false;
       const wsname: string = wb.SheetNames[0];
       const ws: XLSX.WorkSheet = wb.Sheets[wsname];
       const data: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
-  
+
       // Validar encabezados
       const headers = data[0] || [];
       const expectedHeaders = ['Nro. DEPOSITO', 'DESCRIPCIÓN', 'IMPORTE TOTAL', 'FECHA'];
       const normalize = (str: string) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toUpperCase();
       const headersValid = expectedHeaders.every((h, i) => normalize(headers[i] || '') === normalize(h));
-  
+
       if (!headersValid) {
         Swal.fire('Error', 'El archivo debe tener las columnas: ' + expectedHeaders.join(', '), 'error');
         return;
       }
-  
+
       // Validar que haya al menos un dato
       if (data.length <= 1) {
         Swal.fire('Error', 'El archivo no contiene datos para importar.', 'error');
         return;
       }
-  
+
       // Mapear datos, asegurando que cada fila sea un array
       this.excelPreview = data.slice(1).map((row: any[]) => {
         // Convert importe_total to number with 2 decimals
@@ -623,14 +633,14 @@ showAmortizacion: boolean = false;
           importe = importe.replace(',', '.'); // Replace comma decimal separator if any
         }
         const importe_total = parseFloat(importe) || 0;
-  
+
         // Instead of using Excel date, use this.nuevoIngreso.fecha formatted as dd/mm/yyyy
-        const fechaStr = this.actualizarIngreso.fecha ? 
+        const fechaStr = this.actualizarIngreso.fecha ?
           new Date(this.actualizarIngreso.fecha).toLocaleDateString('es-ES') : '';
-  
+
         // Find the rubro object matching the selected id_tipo_rubro
         const rubro = this.tipoRubros.find(r => r.id_detalle_rubro === this.actualizarIngreso.id_tipo_rubro);
-  
+
         return {
           num_depo: row[0] ?? '',
           proveedor: row[1] ?? '',
@@ -646,7 +656,7 @@ showAmortizacion: boolean = false;
           detalle: this.actualizarIngreso.detalle || ''
         };
       });
-  
+
       // Validar que todos los campos requeridos estén presentes en cada fila
       const datosValidos = this.excelPreview.every(ingre =>
         ingre.num_depo && ingre.proveedor && ingre.importe_total && ingre.fecha
@@ -655,7 +665,7 @@ showAmortizacion: boolean = false;
         Swal.fire('Error', 'Todos los campos son obligatorios en cada fila.', 'error');
         return;
       }
-  
+
       // Mostrar el modal de importación
       this.selectedItem = 3;
     };
@@ -805,6 +815,121 @@ showAmortizacion: boolean = false;
     const rubro = this.tipoRubros.find(r => r.id_detalle_rubro === id_tipo_rubro);
     return rubro?.servicio === 'VENTA DE CARNETS DE ASEGURADO';
   }
+
+  onFileChangeRecibo(evt: any) {
+    const file = evt.target.files[0];
+    if (!file) {
+      Swal.fire('Error', 'Debe seleccionar un archivo.', 'error');
+      return;
+    }
+  
+    // Validar extensión de archivo
+    const validExtensions = ['.xlsx', '.xls'];
+    const fileName = file.name.toLowerCase();
+    if (!validExtensions.some(ext => fileName.endsWith(ext))) {
+      Swal.fire('Error', 'Solo se permiten archivos de Excel (.xlsx, .xls).', 'error');
+      return;
+    }
+  
+    this.excelFileToImport = file;
+  
+    this.getNextNumRecibo().then(() => {
+      const startingNumRecibo = this.actualizarIngreso.num_recibo || 1;
+  
+      const reader: FileReader = new FileReader();
+      reader.onload = (e: any) => {
+        const bstr: string = e.target.result;
+        const wb: XLSX.WorkBook = XLSX.read(bstr, { type: 'binary' });
+        const wsname: string = wb.SheetNames[0];
+        const ws: XLSX.WorkSheet = wb.Sheets[wsname];
+        const data: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+  
+        // Validar encabezados
+        const headers = data[0] || [];
+        const expectedHeaders = ['Fecha', 'Nro. Comprob.', 'Descripción del Movimiento', 'Importe a Conciliar'];
+        const normalize = (str: string) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toUpperCase();
+        const headersValid = expectedHeaders.every((h, i) => normalize(headers[i] || '') === normalize(h));
+  
+        if (!headersValid) {
+          Swal.fire('Error', 'El archivo debe tener las columnas: ' + expectedHeaders.join(', '), 'error');
+          return;
+        }
+  
+        // Validar que haya al menos un dato
+        if (data.length <= 1) {
+          Swal.fire('Error', 'El archivo no contiene datos para importar.', 'error');
+          return;
+        }
+  
+        // Mapear datos y guardar directamente en la base de datos
+        const saveObservables = data.slice(1).map((row: any[], index: number) => {
+          const ingresoToSave = new ingresos();
+  
+          // Parse date from 'Fecha' column (row[0])
+          if (row[0]) {
+            if (typeof row[0] === 'string') {
+              const parts = row[0].split('/');
+              if (parts.length === 3) {
+                const day = parseInt(parts[0], 10);
+                const month = parseInt(parts[1], 10) - 1; // JS months are 0-based
+                const year = parseInt(parts[2], 10);
+                ingresoToSave.fecha = new Date(year, month, day);
+              } else {
+                ingresoToSave.fecha = new Date(row[0]);
+              }
+            } else if (row[0] instanceof Date) {
+              ingresoToSave.fecha = row[0];
+            } else {
+              ingresoToSave.fecha = new Date(row[0]);
+            }
+          } else {
+            const fechaStr = this.actualizarIngreso.fecha ?
+            new Date(this.actualizarIngreso.fecha).toLocaleDateString('es-ES') : '';
+            ingresoToSave.fecha = new Date(fechaStr);
+          }
+  
+          ingresoToSave.num_depo = row[1] ?? '';
+          ingresoToSave.detalle = row[2] ?? '';
+  
+          // Parse monto from 'Importe a Conciliar' column (row[3])
+          let montoValue = row[3];
+          if (typeof montoValue === 'string') {
+            montoValue = montoValue.replace(',', '.');
+          }
+          ingresoToSave.monto = parseFloat(montoValue) || 0;
+          ingresoToSave.importe_total = ingresoToSave.monto;
+  
+          // Assign incremented num_recibo starting from startingNumRecibo
+          ingresoToSave.num_recibo = startingNumRecibo + index;
+  
+          // Set other required fields with defaults or from your component state
+          ingresoToSave.estado = 'CONSOLIDADO';
+          ingresoToSave.cerrado = 'SI';
+          ingresoToSave.fecha_reg = new Date();
+          ingresoToSave.cuenta = '1-45990921';
+          ingresoToSave.tipo_emision = 'RECIBO';
+          ingresoToSave.num_factura = 0;
+          ingresoToSave.nit = 0;
+  
+          // You can set additional fields if needed here
+  
+          return this.ingresoService.postIngresos(ingresoToSave);
+        });
+  
+        forkJoin(saveObservables).subscribe({
+          next: () => {
+            Swal.fire('Éxito', 'Todos los registros fueron guardados correctamente.', 'success');
+            this.goBack();
+          },
+          error: (err) => {
+            Swal.fire('Error', 'Ocurrió un error al guardar los registros.', 'error');
+            console.error(err);
+          }
+        });
+      };
+      reader.readAsBinaryString(file);
+    });
+  }
   updateDetalle() {
     if (this.actualizarIngreso.tipo_emision !== 'RECIBO' && this.actualizarIngreso.tipo_emision !== 'DOCUMENTO') {
       return;
@@ -896,7 +1021,7 @@ showAmortizacion: boolean = false;
     this.actualizarIngreso.id_tipo_rubro = '';
     this.actualizarIngreso.detalle = '';
     this.actualizarIngreso.servicio = '';
-    
+
     if (this.actualizarIngreso.op_tipoemision !== 'factura') {
       this.actualizarIngreso.monto = 0;
       this.actualizarIngreso.detalle = '';
@@ -1015,8 +1140,10 @@ showAmortizacion: boolean = false;
         }
       });
 
-      console.log(this.actualizarIngreso);
-      
+    console.log(this.actualizarIngreso);
+
   }
+
+  // Apply search filter
 
 }

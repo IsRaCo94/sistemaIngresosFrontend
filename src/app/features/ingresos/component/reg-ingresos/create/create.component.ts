@@ -15,6 +15,7 @@ import { forkJoin } from 'rxjs';
 import { data } from 'jquery';
 import { SafeUrlPipe } from '../../../../../shared/pipes/safe-url.pipe';
 import { EmpresaService } from '../../../../service/empresa.service';
+import { Router } from '@angular/router';
 @Component({
   selector: 'app-create',
   standalone: false,
@@ -37,6 +38,8 @@ export class CreateComponent implements OnInit {
   excelFileToImport: File | null = null;
   excelPreview: any[] = [];
   pdfSrc: string | null = null;  // Agrega esta propiedad
+
+
   constructor(
     private _formBuilder: FormBuilder,
     private changeDetector: ChangeDetectorRef,
@@ -45,6 +48,7 @@ export class CreateComponent implements OnInit {
     private rubrosService: DetalleRubrosService,
     private _location: Location,
     private empresaService: EmpresaService,
+  
 
   ) {
 
@@ -52,6 +56,11 @@ export class CreateComponent implements OnInit {
   collapseCard() {
     this.isCardCollapsed = !this.isCardCollapsed;
   }
+
+
+
+
+
   ngOnInit(): void {
 
     if (!this.nuevoIngreso.fecha) {
@@ -506,7 +515,15 @@ export class CreateComponent implements OnInit {
   
           // Parse date from 'Fecha' column (row[0])
           if (row[0]) {
-            if (typeof row[0] === 'string') {
+            if (typeof row[0] === 'number') {
+              // Excel serial date to JS Date with timezone adjustment
+              const excelDate = row[0];
+              const utcDays = excelDate - 25569;
+              const utcValue = utcDays * 86400 * 1000;
+              const dateInfo = new Date(utcValue);
+              const jsDate = new Date(dateInfo.getTime() + dateInfo.getTimezoneOffset() * 60000);
+              ingresoToSave.fecha = jsDate;
+            } else if (typeof row[0] === 'string') {
               const parts = row[0].split('/');
               if (parts.length === 3) {
                 const day = parseInt(parts[0], 10);
@@ -523,7 +540,7 @@ export class CreateComponent implements OnInit {
             }
           } else {
             const fechaStr = this.nuevoIngreso.fecha ?
-            new Date(this.nuevoIngreso.fecha).toLocaleDateString('es-ES') : '';
+              new Date(this.nuevoIngreso.fecha).toLocaleDateString('es-ES') : '';
             ingresoToSave.fecha = new Date(fechaStr);
           }
   
@@ -554,7 +571,7 @@ export class CreateComponent implements OnInit {
   
           return this.ingresoService.postIngresos(ingresoToSave);
         });
-  
+        console.log('guardado de excel',this.nuevoIngreso);
         forkJoin(saveObservables).subscribe({
           next: () => {
             Swal.fire('Éxito', 'Todos los registros fueron guardados correctamente.', 'success');
@@ -568,6 +585,9 @@ export class CreateComponent implements OnInit {
       };
       reader.readAsBinaryString(file);
     });
+
+
+    
   }
   iniIngreso() {
 
@@ -922,6 +942,26 @@ export class CreateComponent implements OnInit {
           //this.calculateCostoTotal();
 
           // Set tipo_ingres and id_tipo_ingr_id automatically if METODO_PAGO is "DEPOSITO O TRANSFERENCIA"
+
+           // After setting proveedor, verify if it exists in getAllEmpresas
+        this.empresaService.getAllEmpresas().subscribe({
+          next: (empresasResponse: any) => {
+            const empresasArray = empresasResponse.empresas || empresasResponse;
+            const matchedEmpresa = empresasArray.find((emp: empresa) =>
+              String(emp.EMP_NOM).toUpperCase() === String(this.nuevoIngreso.proveedor).toUpperCase()
+            );
+            if (matchedEmpresa) {
+              this.nuevoIngreso.cod_prove = matchedEmpresa.EMP_COD;
+              console.log('Provider matched in getAllEmpresas, cod_prove set:', matchedEmpresa.EMP_COD);
+            } else {
+              this.nuevoIngreso.cod_prove = '';
+              console.log('Provider not found in getAllEmpresas');
+            }
+          },
+          error: (err) => {
+            console.error('Error fetching empresas in buscarAporte:', err);
+          }
+        });
           if (aporte.METODO_PAGO) {
             const metodoPagoUpper = aporte.METODO_PAGO.toUpperCase();
             switch (metodoPagoUpper) {
@@ -999,6 +1039,76 @@ export class CreateComponent implements OnInit {
       }
     });
   }
+  // buscarAporte(num_form: number) {
+  //   if (this.nuevoIngreso.tipo_emision !== 'RECIBO') {
+  //     return;
+  //   }
+  
+  //   this.ingresoService.getAportes(num_form).subscribe({
+  //     next: (data: any) => {
+  //       console.log('Full aporte data:', data);
+  //       if (data && data.pagos && data.pagos.length > 0) {
+  //         const aporte = data.pagos[0];
+  //         this.nuevoIngreso.proveedor = aporte.EMPRESA || '';
+  //         // Parse date string dd/mm/yyyy to Date object
+  //         if (aporte.FECHA_PAGO) {
+  //           const parts = aporte.FECHA_PAGO.split('/');
+  //           if (parts.length === 3) {
+  //             const day = parseInt(parts[0], 10);
+  //             const month = parseInt(parts[1], 10) - 1;
+  //             const year = parseInt(parts[2], 10);
+  //             this.nuevoIngreso.fecha = new Date(year, month, day);
+  //           } else {
+  //             this.nuevoIngreso.fecha = new Date(aporte.FECHA_PAGO);
+  //           }
+  //         } else {
+  //           this.nuevoIngreso.fecha = new Date();
+  //         }
+  //         this.nuevoIngreso.monto = aporte.TOTAL_IMPORTE_PLANILLA || 0;
+  //         this.nuevoIngreso.importe_total = aporte.TOTAL_IMPORTE_PLANILLA || 0;
+  
+  //         if (aporte.MONTO_DEMASIA && aporte.MONTO_DEMASIA > 0) {
+  //           this.nuevoIngreso.deposito_dema = aporte.MONTO_DEMASIA;
+  //           this.showDemasia = true;
+  //         } else {
+  //           this.nuevoIngreso.deposito_dema = 0;
+  //           this.showDemasia = false;
+  //         }
+  
+  //         // After setting proveedor, verify if it exists in getAllEmpresas
+  //         this.empresaService.getAllEmpresas().subscribe({
+  //           next: (empresasResponse: any) => {
+  //             const empresasArray = empresasResponse.empresas || empresasResponse;
+  //             const matchedEmpresa = empresasArray.find((emp: empresa) =>
+  //               String(emp.EMP_NOM).toUpperCase() === String(this.nuevoIngreso.proveedor).toUpperCase()
+  //             );
+  //             if (matchedEmpresa) {
+  //               this.nuevoIngreso.cod_prove = matchedEmpresa.EMP_COD;
+  //               console.log('Provider matched in getAllEmpresas, cod_prove set:', matchedEmpresa.EMP_COD);
+  //             } else {
+  //               this.nuevoIngreso.cod_prove = '';
+  //               console.log('Provider not found in getAllEmpresas');
+  //             }
+  //           },
+  //           error: (err) => {
+  //             console.error('Error fetching empresas in buscarAporte:', err);
+  //           }
+  //         });
+  
+  //         // Existing logic for METODO_PAGO and TIPO_EMPRESA...
+  
+  //         Swal.fire('Datos cargados', 'Los datos del aporte fueron cargados correctamente.', 'success');
+  
+  //       } else {
+  //         Swal.fire('No encontrado', 'No se encontró aporte con ese número de formulario.', 'info');
+  //       }
+  //     },
+  //     error: (error) => {
+  //       console.error('Error al buscar aporte:', error);
+  //       Swal.fire('Error', 'Ocurrió un error al buscar el aporte.', 'error');
+  //     }
+  //   });
+  // }
   isExcludedRubro(id_tipo_rubro: any): boolean {
     const serviciosExcluidos = [
       'VENTA DE CARNETS DE ASEGURADO',
@@ -1207,5 +1317,9 @@ export class CreateComponent implements OnInit {
           }
         });
     }
+    
   }
+
+
+
 }
